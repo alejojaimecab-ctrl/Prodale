@@ -306,16 +306,13 @@ ul, ol {
   top: 4px;
   left: 0;
   height: calc(100% - 8px);
-  background: rgba(255, 255, 255, 0.08);
+  background: var(--gradient-main);
   border-radius: 25px;
   transition: all 0.3s cubic-bezier(0.25, 1, 0.5, 1);
   z-index: 0;
-  opacity: 0;
-  pointer-events: none;
-}
-
-.nav:hover .nav-indicator {
   opacity: 1;
+  pointer-events: none;
+  box-shadow: 0 4px 20px rgba(123, 45, 142, 0.45);
 }
 
 .nav-btn {
@@ -336,10 +333,9 @@ ul, ol {
 }
 
 .nav-btn.active {
-  background: var(--gradient-main);
+  background: transparent;
   color: #fff;
   font-weight: 600;
-  box-shadow: 0 4px 20px rgba(123, 45, 142, 0.45);
 }
 
 /* Header Stats */

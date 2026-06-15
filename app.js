@@ -217,24 +217,31 @@ function setupNavigation() {
   const indicator = document.getElementById('nav-indicator');
   const nav = document.getElementById('main-nav');
 
-  document.querySelectorAll('.nav-btn').forEach(btn => {
-    btn.addEventListener('mouseenter', (e) => {
-      if (!indicator || !nav) return;
-      const navRect = nav.getBoundingClientRect();
-      const btnRect = e.target.getBoundingClientRect();
-      indicator.style.width = `${btnRect.width}px`;
-      indicator.style.left = `${btnRect.left - navRect.left}px`;
-    });
+  function updateIndicator(targetBtn) {
+    if (!indicator || !nav || !targetBtn) return;
+    const navRect = nav.getBoundingClientRect();
+    const btnRect = targetBtn.getBoundingClientRect();
+    indicator.style.width = `${btnRect.width}px`;
+    indicator.style.left = `${btnRect.left - navRect.left}px`;
+  }
 
+  document.querySelectorAll('.nav-btn').forEach(btn => {
     btn.addEventListener('click', () => {
       const section = btn.dataset.section;
       document.querySelectorAll('.nav-btn').forEach(b => b.classList.remove('active'));
       btn.classList.add('active');
       currentSection = section;
       currentFilter = 'todos';
+      updateIndicator(btn);
       renderSection(section);
     });
   });
+
+  // Inicializar posición
+  setTimeout(() => {
+    const activeBtn = document.querySelector('.nav-btn.active');
+    if (activeBtn) updateIndicator(activeBtn);
+  }, 100);
 }
 
 function handleFilterClick(filter) {
@@ -794,8 +801,8 @@ function savePrediction(matchId) {
 }
 
 function evaluatePrediction(pred, match) {
-  if (match.status !== 'played') return null;
-  if (match.homeScore === null || match.awayScore === null) return null;
+  if (match.status !== 'played' && match.status !== 'live') return null;
+  if (match.homeScore == null || match.awayScore == null) return null;
   if (pred.home === match.homeScore && pred.away === match.awayScore) {
     return { points: 3, class: 'exact', label: '🎯 ¡Resultado Exacto!' };
   }
@@ -827,7 +834,8 @@ function calculateStatsForPredictions(preds) {
     const historyItem = {
       group: match.group, home: match.home, away: match.away,
       predHome: pred.home, predAway: pred.away,
-      realHome: match.homeScore, realAway: match.awayScore,
+      realHome: match.homeScore != null ? match.homeScore : '-',
+      realAway: match.awayScore != null ? match.awayScore : '-',
       points: result ? result.points : null,
       resultClass: result ? result.class : 'pending'
     };
@@ -906,18 +914,32 @@ function checkURLForAdmin() {
 function renderAdminPanel() {
   const list = document.getElementById('admin-matches-list');
   if (!list) return;
+
+  const matchesWithIndex = MATCHES.map((m, index) => ({...m, originalIndex: index}));
+  const pendingMatches = matchesWithIndex.filter(m => m.status !== 'played');
   
-  list.innerHTML = MATCHES.map((m, index) => `
+  pendingMatches.sort((a, b) => {
+    const dateA = new Date(a.date + 'T' + (a.time || '00:00') + ':00');
+    const dateB = new Date(b.date + 'T' + (b.time || '00:00') + ':00');
+    return dateA - dateB;
+  });
+
+  if (pendingMatches.length === 0) {
+    list.innerHTML = '<p style="color:white;text-align:center;">No hay partidos pendientes.</p>';
+    return;
+  }
+  
+  list.innerHTML = pendingMatches.map((m) => `
     <div class="admin-match-row">
       <div class="admin-match-title">Grupo ${m.group}: ${m.home} vs ${m.away} (${m.date} ${m.time || ''})</div>
-      <input type="number" id="admin-home-${index}" class="admin-input" value="${m.homeScore !== null ? m.homeScore : ''}" placeholder="-">
-      <input type="number" id="admin-away-${index}" class="admin-input" value="${m.awayScore !== null ? m.awayScore : ''}" placeholder="-">
-      <select id="admin-status-${index}" class="admin-select">
+      <input type="number" id="admin-home-${m.originalIndex}" class="admin-input" value="${m.homeScore != null ? m.homeScore : ''}" placeholder="-">
+      <input type="number" id="admin-away-${m.originalIndex}" class="admin-input" value="${m.awayScore != null ? m.awayScore : ''}" placeholder="-">
+      <select id="admin-status-${m.originalIndex}" class="admin-select">
         <option value="upcoming" ${m.status === 'upcoming' ? 'selected' : ''}>Próximamente</option>
         <option value="live" ${m.status === 'live' ? 'selected' : ''}>EN VIVO</option>
         <option value="played" ${m.status === 'played' ? 'selected' : ''}>Finalizado</option>
       </select>
-      <button class="admin-btn" onclick="saveAdminMatch(${index})">Guardar</button>
+      <button class="admin-btn" onclick="saveAdminMatch(${m.originalIndex})">Guardar</button>
     </div>
   `).join('');
 }
