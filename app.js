@@ -214,7 +214,18 @@ function savePredictions() {
 // NAVIGATION
 // ============================================
 function setupNavigation() {
+  const indicator = document.getElementById('nav-indicator');
+  const nav = document.getElementById('main-nav');
+
   document.querySelectorAll('.nav-btn').forEach(btn => {
+    btn.addEventListener('mouseenter', (e) => {
+      if (!indicator || !nav) return;
+      const navRect = nav.getBoundingClientRect();
+      const btnRect = e.target.getBoundingClientRect();
+      indicator.style.width = `${btnRect.width}px`;
+      indicator.style.left = `${btnRect.left - navRect.left}px`;
+    });
+
     btn.addEventListener('click', () => {
       const section = btn.dataset.section;
       document.querySelectorAll('.nav-btn').forEach(b => b.classList.remove('active'));
@@ -283,6 +294,9 @@ function renderPartidos(container) {
 function renderProde(container) {
   const groups = ['todos', ...new Set(MATCHES.map(m => m.group))];
   let filtered = currentFilter !== 'todos' ? MATCHES.filter(m => m.group === currentFilter) : [...MATCHES];
+
+  // Ocultar los partidos que ya finalizaron
+  filtered = filtered.filter(m => m.status !== 'played');
 
   // Ordenar por fecha y hora
   filtered.sort((a, b) => {
@@ -780,6 +794,7 @@ function savePrediction(matchId) {
 }
 
 function evaluatePrediction(pred, match) {
+  if (match.status !== 'played') return null;
   if (match.homeScore === null || match.awayScore === null) return null;
   if (pred.home === match.homeScore && pred.away === match.awayScore) {
     return { points: 3, class: 'exact', label: '🎯 ¡Resultado Exacto!' };

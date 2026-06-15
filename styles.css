@@ -290,6 +290,7 @@ ul, ol {
 
 /* Navigation */
 .nav {
+  position: relative;
   display: flex;
   align-items: center;
   gap: 6px;
@@ -297,6 +298,24 @@ ul, ol {
   border-radius: 30px;
   padding: 4px;
   border: 1px solid var(--border-glass);
+  z-index: 1;
+}
+
+.nav-indicator {
+  position: absolute;
+  top: 4px;
+  left: 0;
+  height: calc(100% - 8px);
+  background: rgba(255, 255, 255, 0.08);
+  border-radius: 25px;
+  transition: all 0.3s cubic-bezier(0.25, 1, 0.5, 1);
+  z-index: 0;
+  opacity: 0;
+  pointer-events: none;
+}
+
+.nav:hover .nav-indicator {
+  opacity: 1;
 }
 
 .nav-btn {
@@ -309,11 +328,11 @@ ul, ol {
   transition: all var(--ease);
   white-space: nowrap;
   position: relative;
+  z-index: 2;
 }
 
 .nav-btn:hover {
   color: var(--text-primary);
-  background: rgba(255, 255, 255, 0.06);
 }
 
 .nav-btn.active {
