@@ -48,9 +48,61 @@
         </div>
     </div>
 
+    <!-- SIDEBAR MENU -->
+    <div class="sidebar-overlay" id="sidebar-overlay" onclick="closeMenu()"></div>
+    <aside class="sidebar" id="sidebar">
+        <div class="sidebar-header">
+            <div class="sidebar-brand">
+                <div class="logo-icon">🏆</div>
+                <div class="logo-text">
+                    <h1>Prode Mundial <span class="year">2026</span></h1>
+                    <span class="logo-sub">🇲🇽 🇺🇸 🇨🇦</span>
+                </div>
+            </div>
+            <button class="sidebar-close" onclick="closeMenu()">✕</button>
+        </div>
+        <nav class="sidebar-nav">
+            <button class="sidebar-btn active" data-section="partidos" onclick="navigateTo('partidos', this)">
+                <span class="sidebar-icon">⚽</span>
+                <span class="sidebar-label">Partidos</span>
+            </button>
+            <button class="sidebar-btn" data-section="prode" onclick="navigateTo('prode', this)">
+                <span class="sidebar-icon">🎯</span>
+                <span class="sidebar-label">Prode</span>
+            </button>
+            <button class="sidebar-btn" data-section="predicciones" onclick="navigateTo('predicciones', this)">
+                <span class="sidebar-icon">🤖</span>
+                <span class="sidebar-label">Predicciones</span>
+                <span class="sidebar-badge">IA</span>
+            </button>
+            <button class="sidebar-btn" data-section="tabla" onclick="navigateTo('tabla', this)">
+                <span class="sidebar-icon">📊</span>
+                <span class="sidebar-label">Mi Tabla</span>
+            </button>
+            <button class="sidebar-btn" data-section="torneos" onclick="navigateTo('torneos', this)">
+                <span class="sidebar-icon">🏆</span>
+                <span class="sidebar-label">Torneos</span>
+            </button>
+        </nav>
+        <div class="sidebar-footer">
+            <div class="sidebar-player">
+                <span class="sidebar-player-name" id="sidebar-player-name">Jugador</span>
+                <div class="sidebar-points">
+                    <span class="sidebar-points-label">Puntos</span>
+                    <span class="sidebar-points-value" id="sidebar-points">0</span>
+                </div>
+            </div>
+        </div>
+    </aside>
+
     <!-- HEADER -->
     <header class="header">
         <div class="header-inner">
+            <button class="menu-btn" id="menu-btn" onclick="toggleMenu()" aria-label="Menú">
+                <span class="menu-line"></span>
+                <span class="menu-line"></span>
+                <span class="menu-line"></span>
+            </button>
             <div class="header-brand">
                 <div class="logo-icon">🏆</div>
                 <div class="logo-text">
@@ -58,25 +110,6 @@
                     <span class="logo-sub">🇲🇽 🇺🇸 🇨🇦</span>
                 </div>
             </div>
-            <nav class="nav" id="main-nav">
-                <div class="nav-indicator" id="nav-indicator"></div>
-                <button class="nav-btn active" data-section="partidos">
-                    <span class="nav-icon">⚽</span>
-                    <span class="nav-label">Partidos</span>
-                </button>
-                <button class="nav-btn" data-section="prode">
-                    <span class="nav-icon">🎯</span>
-                    <span class="nav-label">Prode</span>
-                </button>
-                <button class="nav-btn" data-section="tabla">
-                    <span class="nav-icon">📊</span>
-                    <span class="nav-label">Mi Tabla</span>
-                </button>
-                <button class="nav-btn" data-section="torneos">
-                    <span class="nav-icon">🏆</span>
-                    <span class="nav-label">Torneos</span>
-                </button>
-            </nav>
             <div class="header-stats">
                 <div class="player-badge">
                     <span class="player-name" id="header-player-name">Jugador</span>
@@ -123,6 +156,7 @@
 
     <!-- App Scripts -->
     <script src="firebase-config.js"></script>
+    <script src="teams-data.js"></script>
     <script src="app.js"></script>
 </body>
 

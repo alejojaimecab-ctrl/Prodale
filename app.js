@@ -211,37 +211,42 @@ function savePredictions() {
 }
 
 // ============================================
-// NAVIGATION
+// NAVIGATION (Sidebar Menu)
 // ============================================
 function setupNavigation() {
-  const indicator = document.getElementById('nav-indicator');
-  const nav = document.getElementById('main-nav');
+  // No old nav buttons to set up - sidebar uses onclick in HTML
+}
 
-  function updateIndicator(targetBtn) {
-    if (!indicator || !nav || !targetBtn) return;
-    const navRect = nav.getBoundingClientRect();
-    const btnRect = targetBtn.getBoundingClientRect();
-    indicator.style.width = `${btnRect.width}px`;
-    indicator.style.left = `${btnRect.left - navRect.left}px`;
+function toggleMenu() {
+  const sidebar = document.getElementById('sidebar');
+  const overlay = document.getElementById('sidebar-overlay');
+  const menuBtn = document.getElementById('menu-btn');
+  const isOpen = sidebar.classList.contains('open');
+  if (isOpen) {
+    closeMenu();
+  } else {
+    sidebar.classList.add('open');
+    overlay.classList.add('open');
+    menuBtn.classList.add('open');
   }
+}
 
-  document.querySelectorAll('.nav-btn').forEach(btn => {
-    btn.addEventListener('click', () => {
-      const section = btn.dataset.section;
-      document.querySelectorAll('.nav-btn').forEach(b => b.classList.remove('active'));
-      btn.classList.add('active');
-      currentSection = section;
-      currentFilter = 'todos';
-      updateIndicator(btn);
-      renderSection(section);
-    });
-  });
+function closeMenu() {
+  const sidebar = document.getElementById('sidebar');
+  const overlay = document.getElementById('sidebar-overlay');
+  const menuBtn = document.getElementById('menu-btn');
+  sidebar.classList.remove('open');
+  overlay.classList.remove('open');
+  menuBtn.classList.remove('open');
+}
 
-  // Inicializar posición
-  setTimeout(() => {
-    const activeBtn = document.querySelector('.nav-btn.active');
-    if (activeBtn) updateIndicator(activeBtn);
-  }, 100);
+function navigateTo(section, btn) {
+  document.querySelectorAll('.sidebar-btn').forEach(b => b.classList.remove('active'));
+  btn.classList.add('active');
+  currentSection = section;
+  currentFilter = 'todos';
+  closeMenu();
+  renderSection(section);
 }
 
 function handleFilterClick(filter) {
@@ -259,6 +264,7 @@ function renderSection(section) {
   switch(section) {
     case 'partidos': renderPartidos(content); break;
     case 'prode': renderProde(content); break;
+    case 'predicciones': renderPredicciones(content); break;
     case 'tabla': renderTabla(content); break;
     case 'torneos': renderTorneos(content); break;
   }
@@ -879,6 +885,11 @@ function updateHeaderStats() {
   if (el) el.textContent = stats.totalPoints;
   const nameEl = document.getElementById('header-player-name');
   if (nameEl) nameEl.textContent = playerName || 'Jugador';
+  // Sidebar stats
+  const sidebarPts = document.getElementById('sidebar-points');
+  if (sidebarPts) sidebarPts.textContent = stats.totalPoints;
+  const sidebarName = document.getElementById('sidebar-player-name');
+  if (sidebarName) sidebarName.textContent = playerName || 'Jugador';
 }
 
 // ============================================
@@ -1084,4 +1095,470 @@ function openComparePredictions(otherPlayerId) {
 function closeCompareModal() {
   const modal = document.getElementById('compare-modal');
   if (modal) modal.classList.remove('show');
+}
+
+// ============================================
+// PREDICCIONES (AI Prediction) SECTION
+// ============================================
+let predHomeTeam = '';
+let predAwayTeam = '';
+
+function getTeamNames() {
+  if (typeof TEAMS_DATA === 'undefined') return [];
+  return Object.keys(TEAMS_DATA).sort();
+}
+
+// Dynamic stats: merge baseline from TEAMS_DATA with World Cup results
+function getDynamicStats(teamName) {
+  if (typeof TEAMS_DATA === 'undefined' || !TEAMS_DATA[teamName]) return null;
+  const base = JSON.parse(JSON.stringify(TEAMS_DATA[teamName]));
+  
+  // Find World Cup matches for this team that have been played
+  const wcMatches = MATCHES.filter(m =>
+    (m.status === 'played' || m.status === 'live') &&
+    (m.home === teamName || m.away === teamName) &&
+    m.homeScore != null && m.awayScore != null
+  );
+  
+  if (wcMatches.length === 0) return base;
+  
+  // Add WC matches to recentMatches and recalculate form
+  wcMatches.forEach(m => {
+    const isHome = m.home === teamName;
+    const gf = isHome ? m.homeScore : m.awayScore;
+    const ga = isHome ? m.awayScore : m.homeScore;
+    const result = gf > ga ? 'W' : gf < ga ? 'L' : 'D';
+    base.recentMatches.unshift({
+      date: m.date,
+      opponent: isHome ? m.away : m.home,
+      result, gf, ga,
+      possession: base.stats.possession,
+      isWorldCup: true
+    });
+  });
+  
+  // Keep max 12 recent matches (WC matches get priority)
+  base.recentMatches = base.recentMatches.slice(0, 12);
+  
+  // Recalculate stats averages with WC data blended in (WC matches weighted x2)
+  let totalGF = 0, totalGA = 0, weight = 0;
+  base.recentMatches.forEach(m => {
+    const w = m.isWorldCup ? 2 : 1;
+    totalGF += m.gf * w;
+    totalGA += m.ga * w;
+    weight += w;
+  });
+  if (weight > 0) {
+    base.stats.goalsFor = +(totalGF / weight).toFixed(2);
+    base.stats.goalsAgainst = +(totalGA / weight).toFixed(2);
+  }
+  
+  // Update clean sheets
+  base.stats.cleanSheets = base.recentMatches.filter(m => m.ga === 0).length;
+  
+  return base;
+}
+
+// Calculate form points (W=3, D=1, L=0) with recency weighting
+function getFormScore(recentMatches) {
+  let score = 0, maxScore = 0;
+  recentMatches.forEach((m, i) => {
+    const recencyWeight = 1 + (recentMatches.length - i) * 0.1;
+    const pts = m.result === 'W' ? 3 : m.result === 'D' ? 1 : 0;
+    score += pts * recencyWeight;
+    maxScore += 3 * recencyWeight;
+  });
+  return maxScore > 0 ? score / maxScore : 0.5;
+}
+
+// The main prediction algorithm
+function predictMatch(homeTeamName, awayTeamName) {
+  const home = getDynamicStats(homeTeamName);
+  const away = getDynamicStats(awayTeamName);
+  if (!home || !away) return null;
+
+  const factors = [];
+  let homeScore = 0, awayScore = 0;
+
+  // 1. FIFA Ranking (15%)
+  const rankDiff = away.fifaRanking - home.fifaRanking; // positive = home better
+  const rankFactor = Math.max(-1, Math.min(1, rankDiff / 80));
+  const rankHome = 0.5 + rankFactor * 0.5;
+  homeScore += rankHome * 15;
+  awayScore += (1 - rankHome) * 15;
+  factors.push({ icon: '🏅', name: 'Ranking FIFA', weight: '15%',
+    homeVal: `#${home.fifaRanking}`, awayVal: `#${away.fifaRanking}`,
+    winner: rankHome > 0.55 ? 'home' : rankHome < 0.45 ? 'away' : 'draw' });
+
+  // 2. Recent Form (20%)
+  const homeForm = getFormScore(home.recentMatches);
+  const awayForm = getFormScore(away.recentMatches);
+  const formTotal = homeForm + awayForm || 1;
+  homeScore += (homeForm / formTotal) * 20;
+  awayScore += (awayForm / formTotal) * 20;
+  factors.push({ icon: '📈', name: 'Forma Reciente', weight: '20%',
+    homeVal: `${Math.round(homeForm * 100)}%`, awayVal: `${Math.round(awayForm * 100)}%`,
+    winner: homeForm > awayForm * 1.1 ? 'home' : awayForm > homeForm * 1.1 ? 'away' : 'draw' });
+
+  // 3. Offensive Power (15%)
+  const homeOff = home.stats.goalsFor * 0.5 + home.stats.shotsOnTarget * 0.03 + home.stats.passAccuracy * 0.005;
+  const awayOff = away.stats.goalsFor * 0.5 + away.stats.shotsOnTarget * 0.03 + away.stats.passAccuracy * 0.005;
+  const offTotal = homeOff + awayOff || 1;
+  homeScore += (homeOff / offTotal) * 15;
+  awayScore += (awayOff / offTotal) * 15;
+  factors.push({ icon: '⚔️', name: 'Poder Ofensivo', weight: '15%',
+    homeVal: home.stats.goalsFor.toFixed(1) + ' goles/p',
+    awayVal: away.stats.goalsFor.toFixed(1) + ' goles/p',
+    winner: homeOff > awayOff * 1.05 ? 'home' : awayOff > homeOff * 1.05 ? 'away' : 'draw' });
+
+  // 4. Defensive Solidity (15%)
+  const homeDef = (1 / (home.stats.goalsAgainst + 0.3)) * 0.6 + home.stats.cleanSheets * 0.04 + home.stats.tackles * 0.01;
+  const awayDef = (1 / (away.stats.goalsAgainst + 0.3)) * 0.6 + away.stats.cleanSheets * 0.04 + away.stats.tackles * 0.01;
+  const defTotal = homeDef + awayDef || 1;
+  homeScore += (homeDef / defTotal) * 15;
+  awayScore += (awayDef / defTotal) * 15;
+  factors.push({ icon: '🛡️', name: 'Solidez Defensiva', weight: '15%',
+    homeVal: home.stats.goalsAgainst.toFixed(1) + ' enc/p',
+    awayVal: away.stats.goalsAgainst.toFixed(1) + ' enc/p',
+    winner: homeDef > awayDef * 1.05 ? 'home' : awayDef > homeDef * 1.05 ? 'away' : 'draw' });
+
+  // 5. Possession (5%)
+  const posTotal = home.stats.possession + away.stats.possession || 1;
+  homeScore += (home.stats.possession / posTotal) * 5;
+  awayScore += (away.stats.possession / posTotal) * 5;
+  factors.push({ icon: '🎯', name: 'Posesión', weight: '5%',
+    homeVal: home.stats.possession + '%', awayVal: away.stats.possession + '%',
+    winner: home.stats.possession > away.stats.possession + 3 ? 'home' : away.stats.possession > home.stats.possession + 3 ? 'away' : 'draw' });
+
+  // 6. Discipline (5%)
+  const homeDisc = 1 / (1 + home.stats.yellowCards * 0.5 + home.stats.redCards * 2);
+  const awayDisc = 1 / (1 + away.stats.yellowCards * 0.5 + away.stats.redCards * 2);
+  const discTotal = homeDisc + awayDisc || 1;
+  homeScore += (homeDisc / discTotal) * 5;
+  awayScore += (awayDisc / discTotal) * 5;
+  factors.push({ icon: '🟨', name: 'Disciplina', weight: '5%',
+    homeVal: home.stats.yellowCards.toFixed(1) + ' TA/p',
+    awayVal: away.stats.yellowCards.toFixed(1) + ' TA/p',
+    winner: homeDisc > awayDisc * 1.05 ? 'home' : awayDisc > homeDisc * 1.05 ? 'away' : 'draw' });
+
+  // 7. Coach Quality (10%) - based on form and tactical style
+  const homeCoachBonus = homeForm * 0.7 + (home.fifaRanking < 20 ? 0.3 : home.fifaRanking < 40 ? 0.15 : 0);
+  const awayCoachBonus = awayForm * 0.7 + (away.fifaRanking < 20 ? 0.3 : away.fifaRanking < 40 ? 0.15 : 0);
+  const coachTotal = homeCoachBonus + awayCoachBonus || 1;
+  homeScore += (homeCoachBonus / coachTotal) * 10;
+  awayScore += (awayCoachBonus / coachTotal) * 10;
+  factors.push({ icon: '👔', name: 'DT / Táctica', weight: '10%',
+    homeVal: home.coach.name, awayVal: away.coach.name,
+    winner: homeCoachBonus > awayCoachBonus * 1.1 ? 'home' : awayCoachBonus > homeCoachBonus * 1.1 ? 'away' : 'draw' });
+
+  // 8. Squad Quality (10%) 
+  const homeSquad = (home.fifaRanking < 10 ? 0.9 : home.fifaRanking < 20 ? 0.75 : home.fifaRanking < 40 ? 0.55 : home.fifaRanking < 60 ? 0.4 : 0.25);
+  const awaySquad = (away.fifaRanking < 10 ? 0.9 : away.fifaRanking < 20 ? 0.75 : away.fifaRanking < 40 ? 0.55 : away.fifaRanking < 60 ? 0.4 : 0.25);
+  const squadTotal = homeSquad + awaySquad || 1;
+  homeScore += (homeSquad / squadTotal) * 10;
+  awayScore += (awaySquad / squadTotal) * 10;
+  factors.push({ icon: '⭐', name: 'Calidad del Plantel', weight: '10%',
+    homeVal: homeSquad > 0.7 ? 'Elite' : homeSquad > 0.5 ? 'Alto' : 'Medio',
+    awayVal: awaySquad > 0.7 ? 'Elite' : awaySquad > 0.5 ? 'Alto' : 'Medio',
+    winner: homeSquad > awaySquad ? 'home' : awaySquad > homeSquad ? 'away' : 'draw' });
+
+  // 9. Head-to-Head (3%)
+  homeScore += 1.5; awayScore += 1.5; // neutral
+  factors.push({ icon: '🤝', name: 'Historial Directo', weight: '3%',
+    homeVal: '-', awayVal: '-', winner: 'draw' });
+
+  // 10. Home Advantage (2%)
+  homeScore += 1.2; awayScore += 0.8; // slight home advantage
+  factors.push({ icon: '🏟️', name: 'Factor Cancha', weight: '2%',
+    homeVal: '+', awayVal: '-', winner: 'home' });
+
+  // Normalize to probabilities
+  const total = homeScore + awayScore;
+  let homeProb = homeScore / total;
+  let awayProb = awayScore / total;
+
+  // Calculate draw probability (higher when teams are closer)
+  const diff = Math.abs(homeProb - awayProb);
+  const drawBase = Math.max(0.12, 0.35 - diff * 1.5);
+  const drawProb = drawBase;
+  
+  // Redistribute
+  const remaining = 1 - drawProb;
+  homeProb = homeProb / (homeProb + awayProb) * remaining;
+  awayProb = awayProb / (homeProb + awayProb + 0.001) * remaining;
+  // Fix floating point
+  awayProb = 1 - homeProb - drawProb;
+  if (awayProb < 0) awayProb = 0;
+
+  // Predict most likely score
+  const expectedHomeGoals = home.stats.goalsFor * 0.6 + away.stats.goalsAgainst * 0.4;
+  const expectedAwayGoals = away.stats.goalsFor * 0.6 + home.stats.goalsAgainst * 0.4;
+  const predHomeGoals = Math.round(expectedHomeGoals * (homeProb / (homeProb + drawProb * 0.5 + 0.001)));
+  const predAwayGoals = Math.round(expectedAwayGoals * (awayProb / (awayProb + drawProb * 0.5 + 0.001)));
+
+  // Confidence level
+  const confidence = diff > 0.25 ? 'high' : diff > 0.1 ? 'medium' : 'low';
+  const confidenceLabel = confidence === 'high' ? '🟢 Alta confianza' : confidence === 'medium' ? '🟡 Confianza moderada' : '🔴 Partido muy parejo';
+
+  return {
+    homeProb: Math.round(homeProb * 100),
+    drawProb: Math.round(drawProb * 100),
+    awayProb: Math.round(awayProb * 100),
+    likelyScore: `${predHomeGoals} - ${predAwayGoals}`,
+    confidence, confidenceLabel, factors,
+    homeData: home, awayData: away
+  };
+}
+
+// Generate SVG Radar Chart
+function generateRadarSVG(homeData, awayData) {
+  const cx = 130, cy = 130, r = 100;
+  const dims = [
+    { label: 'Ataque', home: homeData.stats.goalsFor / 3, away: awayData.stats.goalsFor / 3 },
+    { label: 'Defensa', home: 1 - homeData.stats.goalsAgainst / 3, away: 1 - awayData.stats.goalsAgainst / 3 },
+    { label: 'Posesión', home: homeData.stats.possession / 100, away: awayData.stats.possession / 100 },
+    { label: 'Disciplina', home: 1 - homeData.stats.yellowCards / 5, away: 1 - awayData.stats.yellowCards / 5 },
+    { label: 'Tiros', home: Math.min(homeData.stats.shotsOnTarget / 8, 1), away: Math.min(awayData.stats.shotsOnTarget / 8, 1) },
+    { label: 'Pases', home: homeData.stats.passAccuracy / 100, away: awayData.stats.passAccuracy / 100 }
+  ];
+  const n = dims.length;
+  const angle = (2 * Math.PI) / n;
+
+  function polarToCart(i, val) {
+    const a = angle * i - Math.PI / 2;
+    return { x: cx + r * val * Math.cos(a), y: cy + r * val * Math.sin(a) };
+  }
+
+  // Grid lines
+  let gridLines = '';
+  [0.25, 0.5, 0.75, 1].forEach(level => {
+    const pts = [];
+    for (let i = 0; i < n; i++) { const p = polarToCart(i, level); pts.push(`${p.x},${p.y}`); }
+    gridLines += `<polygon points="${pts.join(' ')}" fill="none" stroke="rgba(255,255,255,0.08)" stroke-width="1"/>`;
+  });
+
+  // Axis lines + labels
+  let axes = '';
+  dims.forEach((d, i) => {
+    const p = polarToCart(i, 1);
+    axes += `<line x1="${cx}" y1="${cy}" x2="${p.x}" y2="${p.y}" stroke="rgba(255,255,255,0.1)" stroke-width="1"/>`;
+    const lp = polarToCart(i, 1.18);
+    axes += `<text x="${lp.x}" y="${lp.y}" fill="rgba(255,255,255,0.5)" font-size="10" text-anchor="middle" dominant-baseline="central">${d.label}</text>`;
+  });
+
+  // Team polygons
+  const homePoints = dims.map((d, i) => { const p = polarToCart(i, Math.max(0.05, d.home)); return `${p.x},${p.y}`; }).join(' ');
+  const awayPoints = dims.map((d, i) => { const p = polarToCart(i, Math.max(0.05, d.away)); return `${p.x},${p.y}`; }).join(' ');
+
+  return `<svg viewBox="0 0 260 260" xmlns="http://www.w3.org/2000/svg">
+    ${gridLines}${axes}
+    <polygon points="${homePoints}" fill="rgba(0,200,83,0.15)" stroke="#00C853" stroke-width="2"/>
+    <polygon points="${awayPoints}" fill="rgba(232,62,140,0.15)" stroke="#E83E8C" stroke-width="2"/>
+  </svg>`;
+}
+
+function renderPredicciones(container) {
+  const teams = getTeamNames();
+  if (teams.length === 0) {
+    container.innerHTML = `
+      <div class="section-header"><h2 class="section-title">🤖 Predicciones IA</h2></div>
+      <div class="pred-card">
+        <div class="pred-empty"><div class="pred-empty-icon">⏳</div><p>Cargando datos de selecciones...</p></div>
+      </div>`;
+    return;
+  }
+
+  const homeOptions = teams.map(t => `<option value="${t}" ${predHomeTeam === t ? 'selected' : ''}>${FLAGS[t] || ''} ${t}</option>`).join('');
+  const awayOptions = teams.map(t => `<option value="${t}" ${predAwayTeam === t ? 'selected' : ''}>${FLAGS[t] || ''} ${t}</option>`).join('');
+
+  let analysisHTML = '';
+  if (predHomeTeam && predAwayTeam && predHomeTeam !== predAwayTeam) {
+    const pred = predictMatch(predHomeTeam, predAwayTeam);
+    if (pred) {
+      const hd = pred.homeData, ad = pred.awayData;
+      // Stats comparison bars
+      const statPairs = [
+        { name: 'Goles/Partido', hv: hd.stats.goalsFor, av: ad.stats.goalsFor, max: 3.5 },
+        { name: 'Goles Enc/P', hv: hd.stats.goalsAgainst, av: ad.stats.goalsAgainst, max: 3, invert: true },
+        { name: 'Posesión %', hv: hd.stats.possession, av: ad.stats.possession, max: 70 },
+        { name: 'Tiros/Partido', hv: hd.stats.shots, av: ad.stats.shots, max: 20 },
+        { name: 'Tiros al Arco', hv: hd.stats.shotsOnTarget, av: ad.stats.shotsOnTarget, max: 10 },
+        { name: 'Precisión Pases', hv: hd.stats.passAccuracy, av: ad.stats.passAccuracy, max: 95 },
+        { name: 'Córners/P', hv: hd.stats.corners, av: ad.stats.corners, max: 8 },
+        { name: 'Faltas/P', hv: hd.stats.fouls, av: ad.stats.fouls, max: 18, invert: true },
+        { name: 'Tarjetas/P', hv: hd.stats.yellowCards, av: ad.stats.yellowCards, max: 4, invert: true },
+        { name: 'Intercepciones', hv: hd.stats.interceptions, av: ad.stats.interceptions, max: 15 },
+        { name: 'Tackles/P', hv: hd.stats.tackles, av: ad.stats.tackles, max: 22 },
+        { name: 'Valla Invicta', hv: hd.stats.cleanSheets, av: ad.stats.cleanSheets, max: 10 }
+      ];
+      const statBarsHTML = statPairs.map(s => {
+        const hPct = Math.min(100, (s.hv / s.max) * 100);
+        const aPct = Math.min(100, (s.av / s.max) * 100);
+        return `<div class="pred-stat-row">
+          <div style="display:flex;align-items:center;gap:6px;justify-content:flex-end">
+            <span class="pred-stat-value">${typeof s.hv === 'number' ? (s.hv % 1 ? s.hv.toFixed(1) : s.hv) : s.hv}</span>
+            <div class="pred-stat-bar left" style="width:80px"><div class="pred-stat-fill home" style="width:${hPct}%"></div></div>
+          </div>
+          <span class="pred-stat-name">${s.name}</span>
+          <div style="display:flex;align-items:center;gap:6px">
+            <div class="pred-stat-bar" style="width:80px"><div class="pred-stat-fill away" style="width:${aPct}%"></div></div>
+            <span class="pred-stat-value">${typeof s.av === 'number' ? (s.av % 1 ? s.av.toFixed(1) : s.av) : s.av}</span>
+          </div>
+        </div>`;
+      }).join('');
+
+      // Form dots
+      const homeFormHTML = hd.recentMatches.slice(0, 10).map(m =>
+        `<div class="pred-form-dot ${m.result}" title="${m.opponent}: ${m.gf}-${m.ga}">${m.result}</div>`
+      ).join('');
+      const awayFormHTML = ad.recentMatches.slice(0, 10).map(m =>
+        `<div class="pred-form-dot ${m.result}" title="${m.opponent}: ${m.gf}-${m.ga}">${m.result}</div>`
+      ).join('');
+
+      // Key players (first 5 per team)
+      const keyPlayersHome = hd.players.slice(0, 8).map(p =>
+        `<div class="pred-player-item">
+          <span class="pred-player-pos ${p.pos}">${p.pos}</span>
+          <span class="pred-player-name">${p.name}</span>
+          <span class="pred-player-club">${p.club}</span>
+        </div>`
+      ).join('');
+      const keyPlayersAway = ad.players.slice(0, 8).map(p =>
+        `<div class="pred-player-item">
+          <span class="pred-player-pos ${p.pos}">${p.pos}</span>
+          <span class="pred-player-name">${p.name}</span>
+          <span class="pred-player-club">${p.club}</span>
+        </div>`
+      ).join('');
+
+      // Factors breakdown
+      const factorsHTML = pred.factors.map(f =>
+        `<div class="pred-factor-row">
+          <span class="pred-factor-icon">${f.icon}</span>
+          <span class="pred-factor-name">${f.name}</span>
+          <span class="pred-factor-weight">${f.weight}</span>
+          <span class="pred-factor-winner ${f.winner}">${f.winner === 'home' ? FLAGS[predHomeTeam] + ' ' + predHomeTeam : f.winner === 'away' ? FLAGS[predAwayTeam] + ' ' + predAwayTeam : '🤝 Parejo'}</span>
+        </div>`
+      ).join('');
+
+      analysisHTML = `
+        <!-- Resultado Principal -->
+        <div class="pred-result">
+          <div class="pred-probabilities">
+            <div class="pred-prob-item">
+              <span class="pred-prob-value home">${pred.homeProb}%</span>
+              <span class="pred-prob-label">${FLAGS[predHomeTeam]} ${predHomeTeam}</span>
+            </div>
+            <div class="pred-prob-item">
+              <span class="pred-prob-value draw">${pred.drawProb}%</span>
+              <span class="pred-prob-label">Empate</span>
+            </div>
+            <div class="pred-prob-item">
+              <span class="pred-prob-value away">${pred.awayProb}%</span>
+              <span class="pred-prob-label">${FLAGS[predAwayTeam]} ${predAwayTeam}</span>
+            </div>
+          </div>
+          <div class="pred-likely-score">Resultado más probable: <strong>${pred.likelyScore}</strong></div>
+          <div class="pred-confidence ${pred.confidence}">${pred.confidenceLabel}</div>
+        </div>
+
+        <!-- DTs -->
+        <div class="pred-divider">👔 Directores Técnicos</div>
+        <div class="pred-comparison">
+          <div class="pred-team-profile">
+            <div class="pred-team-header">
+              <span class="pred-team-flag">${FLAGS[predHomeTeam]}</span>
+              <div><div class="pred-team-name">${predHomeTeam}</div><div class="pred-team-ranking">FIFA #${hd.fifaRanking} · Grupo ${hd.group}</div></div>
+            </div>
+            <div class="pred-coach"><strong>${hd.coach.name}</strong> (${hd.coach.nationality})<br>${hd.coach.formation} · ${hd.coach.style}</div>
+            <p style="font-size:0.8rem;color:var(--text-secondary);margin:0">${hd.playStyle}</p>
+            <div style="margin-top:10px"><span style="font-size:0.7rem;color:var(--text-muted);text-transform:uppercase;letter-spacing:0.08em;font-weight:600">Forma Reciente</span></div>
+            <div class="pred-form">${homeFormHTML}</div>
+          </div>
+          <div class="pred-team-profile">
+            <div class="pred-team-header">
+              <span class="pred-team-flag">${FLAGS[predAwayTeam]}</span>
+              <div><div class="pred-team-name">${predAwayTeam}</div><div class="pred-team-ranking">FIFA #${ad.fifaRanking} · Grupo ${ad.group}</div></div>
+            </div>
+            <div class="pred-coach"><strong>${ad.coach.name}</strong> (${ad.coach.nationality})<br>${ad.coach.formation} · ${ad.coach.style}</div>
+            <p style="font-size:0.8rem;color:var(--text-secondary);margin:0">${ad.playStyle}</p>
+            <div style="margin-top:10px"><span style="font-size:0.7rem;color:var(--text-muted);text-transform:uppercase;letter-spacing:0.08em;font-weight:600">Forma Reciente</span></div>
+            <div class="pred-form">${awayFormHTML}</div>
+          </div>
+        </div>
+
+        <!-- Radar Chart -->
+        <div class="pred-divider">📊 Comparación Visual</div>
+        <div class="pred-radar-container">
+          <div>
+            <div class="pred-radar">${generateRadarSVG(hd, ad)}</div>
+            <div class="pred-radar-legend">
+              <span class="pred-radar-legend-item"><span class="pred-radar-dot home"></span>${predHomeTeam}</span>
+              <span class="pred-radar-legend-item"><span class="pred-radar-dot away"></span>${predAwayTeam}</span>
+            </div>
+          </div>
+        </div>
+
+        <!-- Stats Comparison -->
+        <div class="pred-divider">📈 Estadísticas Detalladas</div>
+        <div class="pred-stats-list">${statBarsHTML}</div>
+
+        <!-- Strengths/Weaknesses -->
+        <div class="pred-divider">💪 Fortalezas y Debilidades</div>
+        <div class="pred-comparison">
+          <div class="pred-team-profile">
+            <div class="pred-team-header"><span class="pred-team-flag">${FLAGS[predHomeTeam]}</span><div class="pred-team-name">${predHomeTeam}</div></div>
+            <p style="font-size:0.82rem;color:var(--green);margin:0 0 8px">✅ ${hd.strengths}</p>
+            <p style="font-size:0.82rem;color:var(--pink);margin:0">⚠️ ${hd.weaknesses}</p>
+          </div>
+          <div class="pred-team-profile">
+            <div class="pred-team-header"><span class="pred-team-flag">${FLAGS[predAwayTeam]}</span><div class="pred-team-name">${predAwayTeam}</div></div>
+            <p style="font-size:0.82rem;color:var(--green);margin:0 0 8px">✅ ${ad.strengths}</p>
+            <p style="font-size:0.82rem;color:var(--pink);margin:0">⚠️ ${ad.weaknesses}</p>
+          </div>
+        </div>
+
+        <!-- Factor Breakdown -->
+        <div class="pred-divider">🧮 Desglose de Factores del Algoritmo</div>
+        <div class="pred-factors">${factorsHTML}</div>
+
+        <!-- Key Players -->
+        <div class="pred-divider">⭐ Jugadores Clave</div>
+        <div class="pred-key-players">
+          <div>
+            <div class="pred-players-title">${FLAGS[predHomeTeam]} ${predHomeTeam}</div>
+            ${keyPlayersHome}
+          </div>
+          <div>
+            <div class="pred-players-title">${FLAGS[predAwayTeam]} ${predAwayTeam}</div>
+            ${keyPlayersAway}
+          </div>
+        </div>
+      `;
+    }
+  }
+
+  container.innerHTML = `
+    <div class="section-header"><h2 class="section-title">🤖 Predicciones IA</h2></div>
+    <div class="pred-card">
+      <div class="pred-selector">
+        <div class="pred-team-select">
+          <label>Equipo Local</label>
+          <select onchange="predHomeTeam=this.value; renderPredicciones(document.getElementById('main-content'))">
+            <option value="">Seleccionar equipo...</option>
+            ${homeOptions}
+          </select>
+        </div>
+        <span class="pred-vs">VS</span>
+        <div class="pred-team-select">
+          <label>Equipo Visitante</label>
+          <select onchange="predAwayTeam=this.value; renderPredicciones(document.getElementById('main-content'))">
+            <option value="">Seleccionar equipo...</option>
+            ${awayOptions}
+          </select>
+        </div>
+      </div>
+      ${analysisHTML || `<div class="pred-empty"><div class="pred-empty-icon">⚽</div><p>Seleccioná dos equipos para ver el análisis completo</p></div>`}
+    </div>
+  `;
 }
