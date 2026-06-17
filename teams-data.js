@@ -191,5 +191,102 @@ const TEAMS_DATA = {
   strengths: 'Gran solidez defensiva con sistema de 3 centrales; garra y compromiso colectivo.',
   weaknesses: 'Falta de creatividad en ataque y poca posesión contra rivales superiores.',
   playStyle: 'Bloque bajo compacto con salida rápida en contraataque y juego directo a los delanteros.'
+},
+// ==================== GRUPO B ====================
+'Inglaterra': {
+  fifaRanking: 4, group: 'B',
+  coach: { name: 'Gareth Southgate', nationality: 'Inglesa', style: 'Equilibrado y táctico', formation: '4-2-3-1' },
+  stats: { goalsFor: 2.1, goalsAgainst: 0.6, possession: 58, corners: 6.2, fouls: 9.5, yellowCards: 1.2, redCards: 0.0, shots: 14.5, shotsOnTarget: 6.1, passAccuracy: 88, cleanSheets: 6, tackles: 15, interceptions: 9, saves: 2.1 },
+  recentMatches: [
+    { date: '2026-06-05', opponent: 'Italia', result: 'D', gf: 1, ga: 1, possession: 52 },
+    { date: '2026-05-30', opponent: 'Bélgica', result: 'W', gf: 2, ga: 0, possession: 55 },
+    { date: '2026-03-26', opponent: 'Brasil', result: 'D', gf: 0, ga: 0, possession: 49 },
+    { date: '2026-03-22', opponent: 'Suiza', result: 'W', gf: 3, ga: 1, possession: 60 }
+  ],
+  players: [
+    { name: 'Jordan Pickford', pos: 'POR', club: 'Everton', age: 32 },
+    { name: 'John Stones', pos: 'DEF', club: 'Man City', age: 32 },
+    { name: 'Harry Maguire', pos: 'DEF', club: 'Man United', age: 33 },
+    { name: 'Declan Rice', pos: 'MED', club: 'Arsenal', age: 27 },
+    { name: 'Jude Bellingham', pos: 'MED', club: 'Real Madrid', age: 22 },
+    { name: 'Phil Foden', pos: 'MED', club: 'Man City', age: 26 },
+    { name: 'Harry Kane', pos: 'DEL', club: 'Bayern Múnich', age: 32 },
+    { name: 'Bukayo Saka', pos: 'DEL', club: 'Arsenal', age: 24 }
+  ],
+  strengths: 'Profundidad de plantilla élite, control del mediocampo y poder ofensivo.',
+  weaknesses: 'Falta de creatividad contra bloques muy cerrados; presión mediática.',
+  playStyle: 'Juego de posesión paciente buscando huecos para extremos y llegadas de segunda línea.'
+},
+'Estados Unidos': {
+  fifaRanking: 11, group: 'B',
+  coach: { name: 'Gregg Berhalter', nationality: 'Estadounidense', style: 'Ofensivo y dinámico', formation: '4-3-3' },
+  stats: { goalsFor: 1.8, goalsAgainst: 1.0, possession: 54, corners: 5.8, fouls: 11, yellowCards: 1.5, redCards: 0.1, shots: 13.0, shotsOnTarget: 5.5, passAccuracy: 84, cleanSheets: 4, tackles: 16, interceptions: 11, saves: 3.5 },
+  recentMatches: [
+    { date: '2026-06-04', opponent: 'Uruguay', result: 'D', gf: 1, ga: 1, possession: 50 },
+    { date: '2026-05-29', opponent: 'Ecuador', result: 'W', gf: 2, ga: 0, possession: 53 },
+    { date: '2026-03-24', opponent: 'Alemania', result: 'L', gf: 1, ga: 3, possession: 45 },
+    { date: '2026-03-20', opponent: 'Jamaica', result: 'W', gf: 3, ga: 1, possession: 60 }
+  ],
+  players: [
+    { name: 'Matt Turner', pos: 'POR', club: 'Nott Forest', age: 31 },
+    { name: 'Sergiño Dest', pos: 'DEF', club: 'PSV', age: 25 },
+    { name: 'Chris Richards', pos: 'DEF', club: 'Crystal Palace', age: 26 },
+    { name: 'Weston McKennie', pos: 'MED', club: 'Juventus', age: 27 },
+    { name: 'Tyler Adams', pos: 'MED', club: 'Bournemouth', age: 27 },
+    { name: 'Giovanni Reyna', pos: 'MED', club: 'Dortmund', age: 23 },
+    { name: 'Christian Pulisic', pos: 'DEL', club: 'AC Milan', age: 27 },
+    { name: 'Folarin Balogun', pos: 'DEL', club: 'Mónaco', age: 24 }
+  ],
+  strengths: 'Gran despliegue físico, transiciones rápidas y juventud con experiencia europea.',
+  weaknesses: 'Errores defensivos puntuales y falta de consistencia ante rivales top.',
+  playStyle: 'Presión alta y verticalidad utilizando la velocidad de sus extremos.'
+},
+'Senegal': {
+  fifaRanking: 18, group: 'B',
+  coach: { name: 'Aliou Cissé', nationality: 'Senegalesa', style: 'Físico y directo', formation: '4-3-3' },
+  stats: { goalsFor: 1.5, goalsAgainst: 0.7, possession: 48, corners: 4.5, fouls: 14, yellowCards: 2.1, redCards: 0.05, shots: 11.2, shotsOnTarget: 4.0, passAccuracy: 80, cleanSheets: 5, tackles: 21, interceptions: 14, saves: 3.2 },
+  recentMatches: [
+    { date: '2026-06-02', opponent: 'Argelia', result: 'D', gf: 0, ga: 0, possession: 45 },
+    { date: '2026-05-28', opponent: 'Marruecos', result: 'W', gf: 1, ga: 0, possession: 42 },
+    { date: '2026-03-25', opponent: 'Camerún', result: 'W', gf: 2, ga: 1, possession: 49 },
+    { date: '2026-03-21', opponent: 'Egipto', result: 'D', gf: 1, ga: 1, possession: 51 }
+  ],
+  players: [
+    { name: 'Édouard Mendy', pos: 'POR', club: 'Al-Ahli', age: 34 },
+    { name: 'Kalidou Koulibaly', pos: 'DEF', club: 'Al-Hilal', age: 34 },
+    { name: 'Moussa Niakhaté', pos: 'DEF', club: 'Nott Forest', age: 30 },
+    { name: 'Idrissa Gueye', pos: 'MED', club: 'Everton', age: 36 },
+    { name: 'Pape Matar Sarr', pos: 'MED', club: 'Tottenham', age: 23 },
+    { name: 'Sadio Mané', pos: 'DEL', club: 'Al-Nassr', age: 34 },
+    { name: 'Ismaïla Sarr', pos: 'DEL', club: 'Marseille', age: 28 },
+    { name: 'Nicolas Jackson', pos: 'DEL', club: 'Chelsea', age: 24 }
+  ],
+  strengths: 'Defensa muy sólida y presencia física imponente en mediocampo.',
+  weaknesses: 'Dependencia de individualidades en ataque para desequilibrar.',
+  playStyle: 'Sólido atrás, explotando contraataques y balón parado.'
+},
+'Japón': {
+  fifaRanking: 17, group: 'B',
+  coach: { name: 'Hajime Moriyasu', nationality: 'Japonesa', style: 'Intenso y técnico', formation: '4-2-3-1' },
+  stats: { goalsFor: 2.2, goalsAgainst: 0.9, possession: 52, corners: 5.5, fouls: 10, yellowCards: 1.1, redCards: 0.0, shots: 13.5, shotsOnTarget: 5.8, passAccuracy: 85, cleanSheets: 4, tackles: 14, interceptions: 12, saves: 2.8 },
+  recentMatches: [
+    { date: '2026-06-03', opponent: 'Australia', result: 'W', gf: 2, ga: 1, possession: 55 },
+    { date: '2026-05-29', opponent: 'Arabia Saudita', result: 'W', gf: 3, ga: 0, possession: 58 },
+    { date: '2026-03-24', opponent: 'Alemania', result: 'D', gf: 2, ga: 2, possession: 40 },
+    { date: '2026-03-20', opponent: 'Corea del Sur', result: 'W', gf: 1, ga: 0, possession: 51 }
+  ],
+  players: [
+    { name: 'Zion Suzuki', pos: 'POR', club: 'Sint-Truiden', age: 23 },
+    { name: 'Takehiro Tomiyasu', pos: 'DEF', club: 'Arsenal', age: 27 },
+    { name: 'Ko Itakura', pos: 'DEF', club: 'Borussia M.', age: 29 },
+    { name: 'Wataru Endo', pos: 'MED', club: 'Liverpool', age: 33 },
+    { name: 'Hidemasa Morita', pos: 'MED', club: 'Sporting CP', age: 31 },
+    { name: 'Kaoru Mitoma', pos: 'DEL', club: 'Brighton', age: 29 },
+    { name: 'Takefusa Kubo', pos: 'MED', club: 'Real Sociedad', age: 25 },
+    { name: 'Ayase Ueda', pos: 'DEL', club: 'Feyenoord', age: 27 }
+  ],
+  strengths: 'Juego colectivo impecable, técnica en espacios reducidos y alta intensidad.',
+  weaknesses: 'Falta de biotipo físico frente a selecciones europeas o africanas.',
+  playStyle: 'Juego de toque rápido, movilidad constante y presión coordinada.'
 }
 };

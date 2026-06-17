@@ -1109,206 +1109,212 @@ function getTeamNames() {
 }
 
 // Dynamic stats: merge baseline from TEAMS_DATA with World Cup results
-function getDynamicStats(teamName) {
-  if (typeof TEAMS_DATA === 'undefined' || !TEAMS_DATA[teamName]) return null;
-  const base = JSON.parse(JSON.stringify(TEAMS_DATA[teamName]));
-  
-  // Find World Cup matches for this team that have been played
-  const wcMatches = MATCHES.filter(m =>
-    (m.status === 'played' || m.status === 'live') &&
-    (m.home === teamName || m.away === teamName) &&
-    m.homeScore != null && m.awayScore != null
-  );
-  
-  if (wcMatches.length === 0) return base;
-  
-  // Add WC matches to recentMatches and recalculate form
-  wcMatches.forEach(m => {
-    const isHome = m.home === teamName;
-    const gf = isHome ? m.homeScore : m.awayScore;
-    const ga = isHome ? m.awayScore : m.homeScore;
-    const result = gf > ga ? 'W' : gf < ga ? 'L' : 'D';
-    base.recentMatches.unshift({
-      date: m.date,
-      opponent: isHome ? m.away : m.home,
-      result, gf, ga,
-      possession: base.stats.possession,
-      isWorldCup: true
-    });
-  });
-  
-  // Keep max 12 recent matches (WC matches get priority)
-  base.recentMatches = base.recentMatches.slice(0, 12);
-  
-  // Recalculate stats averages with WC data blended in (WC matches weighted x2)
-  let totalGF = 0, totalGA = 0, weight = 0;
-  base.recentMatches.forEach(m => {
-    const w = m.isWorldCup ? 2 : 1;
-    totalGF += m.gf * w;
-    totalGA += m.ga * w;
-    weight += w;
-  });
-  if (weight > 0) {
-    base.stats.goalsFor = +(totalGF / weight).toFixed(2);
-    base.stats.goalsAgainst = +(totalGA / weight).toFixed(2);
+class TeamPredictor {
+  constructor(teamName) {
+    this.name = teamName;
+    this.baseData = typeof TEAMS_DATA !== 'undefined' && TEAMS_DATA[teamName] ? JSON.parse(JSON.stringify(TEAMS_DATA[teamName])) : null;
+    this.data = this.baseData;
+    if (this.data) this.applyDynamicStats();
   }
-  
-  // Update clean sheets
-  base.stats.cleanSheets = base.recentMatches.filter(m => m.ga === 0).length;
-  
-  return base;
+
+  applyDynamicStats() {
+    const wcMatches = MATCHES.filter(m =>
+      (m.status === 'played' || m.status === 'live') &&
+      (m.home === this.name || m.away === this.name) &&
+      m.homeScore != null && m.awayScore != null
+    );
+    
+    if (wcMatches.length === 0) return;
+    
+    wcMatches.forEach(m => {
+      const isHome = m.home === this.name;
+      const gf = isHome ? m.homeScore : m.awayScore;
+      const ga = isHome ? m.awayScore : m.homeScore;
+      const result = gf > ga ? 'W' : gf < ga ? 'L' : 'D';
+      this.data.recentMatches.unshift({
+        date: m.date, opponent: isHome ? m.away : m.home,
+        result, gf, ga, possession: this.data.stats.possession, isWorldCup: true
+      });
+    });
+    
+    this.data.recentMatches = this.data.recentMatches.slice(0, 12);
+    
+    let totalGF = 0, totalGA = 0, weight = 0;
+    this.data.recentMatches.forEach(m => {
+      const w = m.isWorldCup ? 2 : 1;
+      totalGF += m.gf * w;
+      totalGA += m.ga * w;
+      weight += w;
+    });
+    
+    if (weight > 0) {
+      this.data.stats.goalsFor = +(totalGF / weight).toFixed(2);
+      this.data.stats.goalsAgainst = +(totalGA / weight).toFixed(2);
+    }
+    
+    this.data.stats.cleanSheets = this.data.recentMatches.filter(m => m.ga === 0).length;
+  }
+
+  getFormScore() {
+    let score = 0, maxScore = 0;
+    this.data.recentMatches.forEach((m, i) => {
+      const recencyWeight = 1 + (this.data.recentMatches.length - i) * 0.1;
+      const pts = m.result === 'W' ? 3 : m.result === 'D' ? 1 : 0;
+      score += pts * recencyWeight;
+      maxScore += 3 * recencyWeight;
+    });
+    return maxScore > 0 ? score / maxScore : 0.5;
+  }
 }
 
-// Calculate form points (W=3, D=1, L=0) with recency weighting
-function getFormScore(recentMatches) {
-  let score = 0, maxScore = 0;
-  recentMatches.forEach((m, i) => {
-    const recencyWeight = 1 + (recentMatches.length - i) * 0.1;
-    const pts = m.result === 'W' ? 3 : m.result === 'D' ? 1 : 0;
-    score += pts * recencyWeight;
-    maxScore += 3 * recencyWeight;
-  });
-  return maxScore > 0 ? score / maxScore : 0.5;
+class BasePredictor {
+  constructor() {
+    this.factors = [];
+    this.homeScore = 0;
+    this.awayScore = 0;
+  }
+
+  addFactor(icon, name, weightStr, homeVal, awayVal, winner, homePts, awayPts) {
+    this.homeScore += homePts;
+    this.awayScore += awayPts;
+    this.factors.push({ icon, name, weight: weightStr, homeVal, awayVal, winner });
+  }
 }
 
-// The main prediction algorithm
+class MatchPredictor extends BasePredictor {
+  constructor(homeTeamName, awayTeamName) {
+    super();
+    this.homePredictor = new TeamPredictor(homeTeamName);
+    this.awayPredictor = new TeamPredictor(awayTeamName);
+    this.home = this.homePredictor.data;
+    this.away = this.awayPredictor.data;
+  }
+
+  isValid() {
+    return this.home && this.away;
+  }
+
+  evaluateFifaRanking() {
+    const rankDiff = this.away.fifaRanking - this.home.fifaRanking; 
+    const rankFactor = Math.max(-1, Math.min(1, rankDiff / 80));
+    const rankHome = 0.5 + rankFactor * 0.5;
+    this.addFactor('🏅', 'Ranking FIFA', '15%', `#${this.home.fifaRanking}`, `#${this.away.fifaRanking}`, 
+      rankHome > 0.55 ? 'home' : rankHome < 0.45 ? 'away' : 'draw', rankHome * 15, (1 - rankHome) * 15);
+  }
+
+  evaluateForm() {
+    const homeForm = this.homePredictor.getFormScore();
+    const awayForm = this.awayPredictor.getFormScore();
+    const formTotal = homeForm + awayForm || 1;
+    this.addFactor('📈', 'Forma Reciente', '20%', `${Math.round(homeForm * 100)}%`, `${Math.round(awayForm * 100)}%`,
+      homeForm > awayForm * 1.1 ? 'home' : awayForm > homeForm * 1.1 ? 'away' : 'draw', (homeForm / formTotal) * 20, (awayForm / formTotal) * 20);
+    return { homeForm, awayForm };
+  }
+
+  evaluateOffense() {
+    const homeOff = this.home.stats.goalsFor * 0.5 + this.home.stats.shotsOnTarget * 0.03 + this.home.stats.passAccuracy * 0.005;
+    const awayOff = this.away.stats.goalsFor * 0.5 + this.away.stats.shotsOnTarget * 0.03 + this.away.stats.passAccuracy * 0.005;
+    const offTotal = homeOff + awayOff || 1;
+    this.addFactor('⚔️', 'Poder Ofensivo', '15%', this.home.stats.goalsFor.toFixed(1) + ' goles/p', this.away.stats.goalsFor.toFixed(1) + ' goles/p',
+      homeOff > awayOff * 1.05 ? 'home' : awayOff > homeOff * 1.05 ? 'away' : 'draw', (homeOff / offTotal) * 15, (awayOff / offTotal) * 15);
+  }
+
+  evaluateDefense() {
+    const homeDef = (1 / (this.home.stats.goalsAgainst + 0.3)) * 0.6 + this.home.stats.cleanSheets * 0.04 + this.home.stats.tackles * 0.01;
+    const awayDef = (1 / (this.away.stats.goalsAgainst + 0.3)) * 0.6 + this.away.stats.cleanSheets * 0.04 + this.away.stats.tackles * 0.01;
+    const defTotal = homeDef + awayDef || 1;
+    this.addFactor('🛡️', 'Solidez Defensiva', '15%', this.home.stats.goalsAgainst.toFixed(1) + ' enc/p', this.away.stats.goalsAgainst.toFixed(1) + ' enc/p',
+      homeDef > awayDef * 1.05 ? 'home' : awayDef > homeDef * 1.05 ? 'away' : 'draw', (homeDef / defTotal) * 15, (awayDef / defTotal) * 15);
+  }
+
+  evaluatePossession() {
+    const posTotal = this.home.stats.possession + this.away.stats.possession || 1;
+    this.addFactor('🎯', 'Posesión', '5%', this.home.stats.possession + '%', this.away.stats.possession + '%',
+      this.home.stats.possession > this.away.stats.possession + 3 ? 'home' : this.away.stats.possession > this.home.stats.possession + 3 ? 'away' : 'draw',
+      (this.home.stats.possession / posTotal) * 5, (this.away.stats.possession / posTotal) * 5);
+  }
+
+  evaluateDiscipline() {
+    const homeDisc = 1 / (1 + this.home.stats.yellowCards * 0.5 + this.home.stats.redCards * 2);
+    const awayDisc = 1 / (1 + this.away.stats.yellowCards * 0.5 + this.away.stats.redCards * 2);
+    const discTotal = homeDisc + awayDisc || 1;
+    this.addFactor('🟨', 'Disciplina', '5%', this.home.stats.yellowCards.toFixed(1) + ' TA/p', this.away.stats.yellowCards.toFixed(1) + ' TA/p',
+      homeDisc > awayDisc * 1.05 ? 'home' : awayDisc > homeDisc * 1.05 ? 'away' : 'draw', (homeDisc / discTotal) * 5, (awayDisc / discTotal) * 5);
+  }
+
+  evaluateCoach(homeForm, awayForm) {
+    const homeCoachBonus = homeForm * 0.7 + (this.home.fifaRanking < 20 ? 0.3 : this.home.fifaRanking < 40 ? 0.15 : 0);
+    const awayCoachBonus = awayForm * 0.7 + (this.away.fifaRanking < 20 ? 0.3 : this.away.fifaRanking < 40 ? 0.15 : 0);
+    const coachTotal = homeCoachBonus + awayCoachBonus || 1;
+    this.addFactor('👔', 'DT / Táctica', '10%', this.home.coach.name, this.away.coach.name,
+      homeCoachBonus > awayCoachBonus * 1.1 ? 'home' : awayCoachBonus > homeCoachBonus * 1.1 ? 'away' : 'draw',
+      (homeCoachBonus / coachTotal) * 10, (awayCoachBonus / coachTotal) * 10);
+  }
+
+  evaluateSquad() {
+    const homeSquad = (this.home.fifaRanking < 10 ? 0.9 : this.home.fifaRanking < 20 ? 0.75 : this.home.fifaRanking < 40 ? 0.55 : this.home.fifaRanking < 60 ? 0.4 : 0.25);
+    const awaySquad = (this.away.fifaRanking < 10 ? 0.9 : this.away.fifaRanking < 20 ? 0.75 : this.away.fifaRanking < 40 ? 0.55 : this.away.fifaRanking < 60 ? 0.4 : 0.25);
+    const squadTotal = homeSquad + awaySquad || 1;
+    this.addFactor('⭐', 'Calidad del Plantel', '10%', homeSquad > 0.7 ? 'Elite' : homeSquad > 0.5 ? 'Alto' : 'Medio',
+      awaySquad > 0.7 ? 'Elite' : awaySquad > 0.5 ? 'Alto' : 'Medio',
+      homeSquad > awaySquad ? 'home' : awaySquad > homeSquad ? 'away' : 'draw', (homeSquad / squadTotal) * 10, (awaySquad / squadTotal) * 10);
+  }
+
+  evaluateOther() {
+    this.addFactor('🤝', 'Historial Directo', '3%', '-', '-', 'draw', 1.5, 1.5);
+    this.addFactor('🏟️', 'Factor Cancha', '2%', '+', '-', 'home', 1.2, 0.8);
+  }
+
+  predict() {
+    if (!this.isValid()) return null;
+
+    this.evaluateFifaRanking();
+    const { homeForm, awayForm } = this.evaluateForm();
+    this.evaluateOffense();
+    this.evaluateDefense();
+    this.evaluatePossession();
+    this.evaluateDiscipline();
+    this.evaluateCoach(homeForm, awayForm);
+    this.evaluateSquad();
+    this.evaluateOther();
+
+    const total = this.homeScore + this.awayScore;
+    let homeProb = this.homeScore / total;
+    let awayProb = this.awayScore / total;
+
+    const diff = Math.abs(homeProb - awayProb);
+    const drawProb = Math.max(0.12, 0.35 - diff * 1.5);
+    
+    const remaining = 1 - drawProb;
+    homeProb = homeProb / (homeProb + awayProb) * remaining;
+    awayProb = 1 - homeProb - drawProb;
+    if (awayProb < 0) awayProb = 0;
+
+    const expectedHomeGoals = this.home.stats.goalsFor * 0.6 + this.away.stats.goalsAgainst * 0.4;
+    const expectedAwayGoals = this.away.stats.goalsFor * 0.6 + this.home.stats.goalsAgainst * 0.4;
+    const predHomeGoals = Math.round(expectedHomeGoals * (homeProb / (homeProb + drawProb * 0.5 + 0.001)));
+    const predAwayGoals = Math.round(expectedAwayGoals * (awayProb / (awayProb + drawProb * 0.5 + 0.001)));
+
+    const confidence = diff > 0.25 ? 'high' : diff > 0.1 ? 'medium' : 'low';
+    const confidenceLabel = confidence === 'high' ? '🟢 Alta confianza' : confidence === 'medium' ? '🟡 Confianza moderada' : '🔴 Partido muy parejo';
+
+    return {
+      homeProb: Math.round(homeProb * 100),
+      drawProb: Math.round(drawProb * 100),
+      awayProb: Math.round(awayProb * 100),
+      likelyScore: `${predHomeGoals} - ${predAwayGoals}`,
+      confidence, confidenceLabel, factors: this.factors,
+      homeData: this.home, awayData: this.away
+    };
+  }
+}
+
+// Retro-compatibility wrapper
 function predictMatch(homeTeamName, awayTeamName) {
-  const home = getDynamicStats(homeTeamName);
-  const away = getDynamicStats(awayTeamName);
-  if (!home || !away) return null;
-
-  const factors = [];
-  let homeScore = 0, awayScore = 0;
-
-  // 1. FIFA Ranking (15%)
-  const rankDiff = away.fifaRanking - home.fifaRanking; // positive = home better
-  const rankFactor = Math.max(-1, Math.min(1, rankDiff / 80));
-  const rankHome = 0.5 + rankFactor * 0.5;
-  homeScore += rankHome * 15;
-  awayScore += (1 - rankHome) * 15;
-  factors.push({ icon: '🏅', name: 'Ranking FIFA', weight: '15%',
-    homeVal: `#${home.fifaRanking}`, awayVal: `#${away.fifaRanking}`,
-    winner: rankHome > 0.55 ? 'home' : rankHome < 0.45 ? 'away' : 'draw' });
-
-  // 2. Recent Form (20%)
-  const homeForm = getFormScore(home.recentMatches);
-  const awayForm = getFormScore(away.recentMatches);
-  const formTotal = homeForm + awayForm || 1;
-  homeScore += (homeForm / formTotal) * 20;
-  awayScore += (awayForm / formTotal) * 20;
-  factors.push({ icon: '📈', name: 'Forma Reciente', weight: '20%',
-    homeVal: `${Math.round(homeForm * 100)}%`, awayVal: `${Math.round(awayForm * 100)}%`,
-    winner: homeForm > awayForm * 1.1 ? 'home' : awayForm > homeForm * 1.1 ? 'away' : 'draw' });
-
-  // 3. Offensive Power (15%)
-  const homeOff = home.stats.goalsFor * 0.5 + home.stats.shotsOnTarget * 0.03 + home.stats.passAccuracy * 0.005;
-  const awayOff = away.stats.goalsFor * 0.5 + away.stats.shotsOnTarget * 0.03 + away.stats.passAccuracy * 0.005;
-  const offTotal = homeOff + awayOff || 1;
-  homeScore += (homeOff / offTotal) * 15;
-  awayScore += (awayOff / offTotal) * 15;
-  factors.push({ icon: '⚔️', name: 'Poder Ofensivo', weight: '15%',
-    homeVal: home.stats.goalsFor.toFixed(1) + ' goles/p',
-    awayVal: away.stats.goalsFor.toFixed(1) + ' goles/p',
-    winner: homeOff > awayOff * 1.05 ? 'home' : awayOff > homeOff * 1.05 ? 'away' : 'draw' });
-
-  // 4. Defensive Solidity (15%)
-  const homeDef = (1 / (home.stats.goalsAgainst + 0.3)) * 0.6 + home.stats.cleanSheets * 0.04 + home.stats.tackles * 0.01;
-  const awayDef = (1 / (away.stats.goalsAgainst + 0.3)) * 0.6 + away.stats.cleanSheets * 0.04 + away.stats.tackles * 0.01;
-  const defTotal = homeDef + awayDef || 1;
-  homeScore += (homeDef / defTotal) * 15;
-  awayScore += (awayDef / defTotal) * 15;
-  factors.push({ icon: '🛡️', name: 'Solidez Defensiva', weight: '15%',
-    homeVal: home.stats.goalsAgainst.toFixed(1) + ' enc/p',
-    awayVal: away.stats.goalsAgainst.toFixed(1) + ' enc/p',
-    winner: homeDef > awayDef * 1.05 ? 'home' : awayDef > homeDef * 1.05 ? 'away' : 'draw' });
-
-  // 5. Possession (5%)
-  const posTotal = home.stats.possession + away.stats.possession || 1;
-  homeScore += (home.stats.possession / posTotal) * 5;
-  awayScore += (away.stats.possession / posTotal) * 5;
-  factors.push({ icon: '🎯', name: 'Posesión', weight: '5%',
-    homeVal: home.stats.possession + '%', awayVal: away.stats.possession + '%',
-    winner: home.stats.possession > away.stats.possession + 3 ? 'home' : away.stats.possession > home.stats.possession + 3 ? 'away' : 'draw' });
-
-  // 6. Discipline (5%)
-  const homeDisc = 1 / (1 + home.stats.yellowCards * 0.5 + home.stats.redCards * 2);
-  const awayDisc = 1 / (1 + away.stats.yellowCards * 0.5 + away.stats.redCards * 2);
-  const discTotal = homeDisc + awayDisc || 1;
-  homeScore += (homeDisc / discTotal) * 5;
-  awayScore += (awayDisc / discTotal) * 5;
-  factors.push({ icon: '🟨', name: 'Disciplina', weight: '5%',
-    homeVal: home.stats.yellowCards.toFixed(1) + ' TA/p',
-    awayVal: away.stats.yellowCards.toFixed(1) + ' TA/p',
-    winner: homeDisc > awayDisc * 1.05 ? 'home' : awayDisc > homeDisc * 1.05 ? 'away' : 'draw' });
-
-  // 7. Coach Quality (10%) - based on form and tactical style
-  const homeCoachBonus = homeForm * 0.7 + (home.fifaRanking < 20 ? 0.3 : home.fifaRanking < 40 ? 0.15 : 0);
-  const awayCoachBonus = awayForm * 0.7 + (away.fifaRanking < 20 ? 0.3 : away.fifaRanking < 40 ? 0.15 : 0);
-  const coachTotal = homeCoachBonus + awayCoachBonus || 1;
-  homeScore += (homeCoachBonus / coachTotal) * 10;
-  awayScore += (awayCoachBonus / coachTotal) * 10;
-  factors.push({ icon: '👔', name: 'DT / Táctica', weight: '10%',
-    homeVal: home.coach.name, awayVal: away.coach.name,
-    winner: homeCoachBonus > awayCoachBonus * 1.1 ? 'home' : awayCoachBonus > homeCoachBonus * 1.1 ? 'away' : 'draw' });
-
-  // 8. Squad Quality (10%) 
-  const homeSquad = (home.fifaRanking < 10 ? 0.9 : home.fifaRanking < 20 ? 0.75 : home.fifaRanking < 40 ? 0.55 : home.fifaRanking < 60 ? 0.4 : 0.25);
-  const awaySquad = (away.fifaRanking < 10 ? 0.9 : away.fifaRanking < 20 ? 0.75 : away.fifaRanking < 40 ? 0.55 : away.fifaRanking < 60 ? 0.4 : 0.25);
-  const squadTotal = homeSquad + awaySquad || 1;
-  homeScore += (homeSquad / squadTotal) * 10;
-  awayScore += (awaySquad / squadTotal) * 10;
-  factors.push({ icon: '⭐', name: 'Calidad del Plantel', weight: '10%',
-    homeVal: homeSquad > 0.7 ? 'Elite' : homeSquad > 0.5 ? 'Alto' : 'Medio',
-    awayVal: awaySquad > 0.7 ? 'Elite' : awaySquad > 0.5 ? 'Alto' : 'Medio',
-    winner: homeSquad > awaySquad ? 'home' : awaySquad > homeSquad ? 'away' : 'draw' });
-
-  // 9. Head-to-Head (3%)
-  homeScore += 1.5; awayScore += 1.5; // neutral
-  factors.push({ icon: '🤝', name: 'Historial Directo', weight: '3%',
-    homeVal: '-', awayVal: '-', winner: 'draw' });
-
-  // 10. Home Advantage (2%)
-  homeScore += 1.2; awayScore += 0.8; // slight home advantage
-  factors.push({ icon: '🏟️', name: 'Factor Cancha', weight: '2%',
-    homeVal: '+', awayVal: '-', winner: 'home' });
-
-  // Normalize to probabilities
-  const total = homeScore + awayScore;
-  let homeProb = homeScore / total;
-  let awayProb = awayScore / total;
-
-  // Calculate draw probability (higher when teams are closer)
-  const diff = Math.abs(homeProb - awayProb);
-  const drawBase = Math.max(0.12, 0.35 - diff * 1.5);
-  const drawProb = drawBase;
-  
-  // Redistribute
-  const remaining = 1 - drawProb;
-  homeProb = homeProb / (homeProb + awayProb) * remaining;
-  awayProb = awayProb / (homeProb + awayProb + 0.001) * remaining;
-  // Fix floating point
-  awayProb = 1 - homeProb - drawProb;
-  if (awayProb < 0) awayProb = 0;
-
-  // Predict most likely score
-  const expectedHomeGoals = home.stats.goalsFor * 0.6 + away.stats.goalsAgainst * 0.4;
-  const expectedAwayGoals = away.stats.goalsFor * 0.6 + home.stats.goalsAgainst * 0.4;
-  const predHomeGoals = Math.round(expectedHomeGoals * (homeProb / (homeProb + drawProb * 0.5 + 0.001)));
-  const predAwayGoals = Math.round(expectedAwayGoals * (awayProb / (awayProb + drawProb * 0.5 + 0.001)));
-
-  // Confidence level
-  const confidence = diff > 0.25 ? 'high' : diff > 0.1 ? 'medium' : 'low';
-  const confidenceLabel = confidence === 'high' ? '🟢 Alta confianza' : confidence === 'medium' ? '🟡 Confianza moderada' : '🔴 Partido muy parejo';
-
-  return {
-    homeProb: Math.round(homeProb * 100),
-    drawProb: Math.round(drawProb * 100),
-    awayProb: Math.round(awayProb * 100),
-    likelyScore: `${predHomeGoals} - ${predAwayGoals}`,
-    confidence, confidenceLabel, factors,
-    homeData: home, awayData: away
-  };
+  const predictor = new MatchPredictor(homeTeamName, awayTeamName);
+  return predictor.predict();
 }
+
 
 // Generate SVG Radar Chart
 function generateRadarSVG(homeData, awayData) {
