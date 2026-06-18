@@ -22,89 +22,89 @@ const FLAGS = {
 // ---- MATCH DATABASE ----
 let MATCHES = [
   // GRUPO A
-  { id: 1, group: 'A', home: 'México', away: 'Sudáfrica', date: '2026-06-11', time: '18:00', stadium: 'Estadio Azteca, Ciudad de México', homeScore: 2, awayScore: 0, status: 'played' },
-  { id: 2, group: 'A', home: 'Corea del Sur', away: 'Chequia', date: '2026-06-11', time: '21:00', stadium: 'Rose Bowl, Los Ángeles', homeScore: 2, awayScore: 1, status: 'played' },
-  { id: 3, group: 'A', home: 'México', away: 'Chequia', date: '2026-06-17', time: '18:00', stadium: 'Estadio Azteca, Ciudad de México', homeScore: null, awayScore: null, status: 'upcoming' },
-  { id: 4, group: 'A', home: 'Sudáfrica', away: 'Corea del Sur', date: '2026-06-17', time: '21:00', stadium: 'AT&T Stadium, Dallas', homeScore: null, awayScore: null, status: 'upcoming' },
-  { id: 5, group: 'A', home: 'Chequia', away: 'Sudáfrica', date: '2026-06-23', time: '18:00', stadium: 'Rose Bowl, Los Ángeles', homeScore: null, awayScore: null, status: 'upcoming' },
-  { id: 6, group: 'A', home: 'Corea del Sur', away: 'México', date: '2026-06-23', time: '18:00', stadium: 'Estadio Azteca, Ciudad de México', homeScore: null, awayScore: null, status: 'upcoming' },
+  { id: 1, group: 'A', home: 'México', away: 'Sudáfrica', date: '2026-06-11', time: '21:00', stadium: 'Estadio Azteca, Ciudad de México', homeScore: 2, awayScore: 0, status: 'played' },
+  { id: 2, group: 'A', home: 'Corea del Sur', away: 'Chequia', date: '2026-06-11', time: '23:00', stadium: 'Rose Bowl, Los Ángeles', homeScore: 2, awayScore: 1, status: 'played' },
+  { id: 3, group: 'A', home: 'México', away: 'Chequia', date: '2026-06-17', time: '21:00', stadium: 'Estadio Azteca, Ciudad de México', homeScore: null, awayScore: null, status: 'upcoming' },
+  { id: 4, group: 'A', home: 'Sudáfrica', away: 'Corea del Sur', date: '2026-06-17', time: '23:00', stadium: 'AT&T Stadium, Dallas', homeScore: null, awayScore: null, status: 'upcoming' },
+  { id: 5, group: 'A', home: 'Chequia', away: 'Sudáfrica', date: '2026-06-23', time: '21:00', stadium: 'Rose Bowl, Los Ángeles', homeScore: null, awayScore: null, status: 'upcoming' },
+  { id: 6, group: 'A', home: 'Corea del Sur', away: 'México', date: '2026-06-23', time: '21:00', stadium: 'Estadio Azteca, Ciudad de México', homeScore: null, awayScore: null, status: 'upcoming' },
   // GRUPO B
-  { id: 7, group: 'B', home: 'Canadá', away: 'Bosnia', date: '2026-06-12', time: '13:00', stadium: 'BC Place, Vancouver', homeScore: 1, awayScore: 1, status: 'played' },
-  { id: 8, group: 'B', home: 'Qatar', away: 'Suiza', date: '2026-06-13', time: '13:00', stadium: 'BMO Field, Toronto', homeScore: 1, awayScore: 1, status: 'played' },
-  { id: 9, group: 'B', home: 'Canadá', away: 'Suiza', date: '2026-06-18', time: '13:00', stadium: 'BC Place, Vancouver', homeScore: null, awayScore: null, status: 'upcoming' },
-  { id: 10, group: 'B', home: 'Bosnia', away: 'Qatar', date: '2026-06-18', time: '16:00', stadium: 'BMO Field, Toronto', homeScore: null, awayScore: null, status: 'upcoming' },
-  { id: 11, group: 'B', home: 'Suiza', away: 'Bosnia', date: '2026-06-24', time: '16:00', stadium: 'BMO Field, Toronto', homeScore: null, awayScore: null, status: 'upcoming' },
-  { id: 12, group: 'B', home: 'Qatar', away: 'Canadá', date: '2026-06-24', time: '16:00', stadium: 'BC Place, Vancouver', homeScore: null, awayScore: null, status: 'upcoming' },
+  { id: 7, group: 'B', home: 'Canadá', away: 'Bosnia', date: '2026-06-12', time: '16:00', stadium: 'BC Place, Vancouver', homeScore: 1, awayScore: 1, status: 'played' },
+  { id: 8, group: 'B', home: 'Qatar', away: 'Suiza', date: '2026-06-13', time: '16:00', stadium: 'BMO Field, Toronto', homeScore: 1, awayScore: 1, status: 'played' },
+  { id: 9, group: 'B', home: 'Canadá', away: 'Suiza', date: '2026-06-18', time: '16:00', stadium: 'BC Place, Vancouver', homeScore: null, awayScore: null, status: 'upcoming' },
+  { id: 10, group: 'B', home: 'Bosnia', away: 'Qatar', date: '2026-06-18', time: '19:00', stadium: 'BMO Field, Toronto', homeScore: null, awayScore: null, status: 'upcoming' },
+  { id: 11, group: 'B', home: 'Suiza', away: 'Bosnia', date: '2026-06-24', time: '19:00', stadium: 'BMO Field, Toronto', homeScore: null, awayScore: null, status: 'upcoming' },
+  { id: 12, group: 'B', home: 'Qatar', away: 'Canadá', date: '2026-06-24', time: '19:00', stadium: 'BC Place, Vancouver', homeScore: null, awayScore: null, status: 'upcoming' },
   // GRUPO C
-  { id: 13, group: 'C', home: 'Brasil', away: 'Marruecos', date: '2026-06-13', time: '16:00', stadium: 'SoFi Stadium, Los Ángeles', homeScore: 1, awayScore: 1, status: 'played' },
-  { id: 14, group: 'C', home: 'Haití', away: 'Escocia', date: '2026-06-13', time: '19:00', stadium: 'Hard Rock Stadium, Miami', homeScore: 0, awayScore: 1, status: 'played' },
-  { id: 15, group: 'C', home: 'Brasil', away: 'Escocia', date: '2026-06-19', time: '16:00', stadium: 'Hard Rock Stadium, Miami', homeScore: null, awayScore: null, status: 'upcoming' },
-  { id: 16, group: 'C', home: 'Marruecos', away: 'Haití', date: '2026-06-19', time: '19:00', stadium: 'SoFi Stadium, Los Ángeles', homeScore: null, awayScore: null, status: 'upcoming' },
-  { id: 17, group: 'C', home: 'Escocia', away: 'Marruecos', date: '2026-06-25', time: '19:00', stadium: 'SoFi Stadium, Los Ángeles', homeScore: null, awayScore: null, status: 'upcoming' },
-  { id: 18, group: 'C', home: 'Haití', away: 'Brasil', date: '2026-06-25', time: '19:00', stadium: 'Hard Rock Stadium, Miami', homeScore: null, awayScore: null, status: 'upcoming' },
+  { id: 13, group: 'C', home: 'Brasil', away: 'Marruecos', date: '2026-06-13', time: '19:00', stadium: 'SoFi Stadium, Los Ángeles', homeScore: 1, awayScore: 1, status: 'played' },
+  { id: 14, group: 'C', home: 'Haití', away: 'Escocia', date: '2026-06-13', time: '22:00', stadium: 'Hard Rock Stadium, Miami', homeScore: 0, awayScore: 1, status: 'played' },
+  { id: 15, group: 'C', home: 'Brasil', away: 'Escocia', date: '2026-06-19', time: '19:00', stadium: 'Hard Rock Stadium, Miami', homeScore: null, awayScore: null, status: 'upcoming' },
+  { id: 16, group: 'C', home: 'Marruecos', away: 'Haití', date: '2026-06-19', time: '22:00', stadium: 'SoFi Stadium, Los Ángeles', homeScore: null, awayScore: null, status: 'upcoming' },
+  { id: 17, group: 'C', home: 'Escocia', away: 'Marruecos', date: '2026-06-25', time: '22:00', stadium: 'SoFi Stadium, Los Ángeles', homeScore: null, awayScore: null, status: 'upcoming' },
+  { id: 18, group: 'C', home: 'Haití', away: 'Brasil', date: '2026-06-25', time: '22:00', stadium: 'Hard Rock Stadium, Miami', homeScore: null, awayScore: null, status: 'upcoming' },
   // GRUPO D
-  { id: 19, group: 'D', home: 'Estados Unidos', away: 'Paraguay', date: '2026-06-12', time: '18:00', stadium: 'MetLife Stadium, New Jersey', homeScore: 4, awayScore: 1, status: 'played' },
-  { id: 20, group: 'D', home: 'Australia', away: 'Turquía', date: '2026-06-13', time: '21:00', stadium: 'Lincoln Financial Field, Filadelfia', homeScore: 2, awayScore: 0, status: 'played' },
-  { id: 21, group: 'D', home: 'Estados Unidos', away: 'Turquía', date: '2026-06-18', time: '19:00', stadium: 'MetLife Stadium, New Jersey', homeScore: null, awayScore: null, status: 'upcoming' },
-  { id: 22, group: 'D', home: 'Paraguay', away: 'Australia', date: '2026-06-18', time: '21:00', stadium: 'Lincoln Financial Field, Filadelfia', homeScore: null, awayScore: null, status: 'upcoming' },
-  { id: 23, group: 'D', home: 'Turquía', away: 'Paraguay', date: '2026-06-24', time: '21:00', stadium: 'Lincoln Financial Field, Filadelfia', homeScore: null, awayScore: null, status: 'upcoming' },
-  { id: 24, group: 'D', home: 'Australia', away: 'Estados Unidos', date: '2026-06-24', time: '21:00', stadium: 'MetLife Stadium, New Jersey', homeScore: null, awayScore: null, status: 'upcoming' },
+  { id: 19, group: 'D', home: 'Estados Unidos', away: 'Paraguay', date: '2026-06-12', time: '21:00', stadium: 'MetLife Stadium, New Jersey', homeScore: 4, awayScore: 1, status: 'played' },
+  { id: 20, group: 'D', home: 'Australia', away: 'Turquía', date: '2026-06-13', time: '23:00', stadium: 'Lincoln Financial Field, Filadelfia', homeScore: 2, awayScore: 0, status: 'played' },
+  { id: 21, group: 'D', home: 'Estados Unidos', away: 'Turquía', date: '2026-06-18', time: '22:00', stadium: 'MetLife Stadium, New Jersey', homeScore: null, awayScore: null, status: 'upcoming' },
+  { id: 22, group: 'D', home: 'Paraguay', away: 'Australia', date: '2026-06-18', time: '23:00', stadium: 'Lincoln Financial Field, Filadelfia', homeScore: null, awayScore: null, status: 'upcoming' },
+  { id: 23, group: 'D', home: 'Turquía', away: 'Paraguay', date: '2026-06-24', time: '23:00', stadium: 'Lincoln Financial Field, Filadelfia', homeScore: null, awayScore: null, status: 'upcoming' },
+  { id: 24, group: 'D', home: 'Australia', away: 'Estados Unidos', date: '2026-06-24', time: '23:00', stadium: 'MetLife Stadium, New Jersey', homeScore: null, awayScore: null, status: 'upcoming' },
   // GRUPO E
-  { id: 25, group: 'E', home: 'Alemania', away: 'Curazao', date: '2026-06-14', time: '13:00', stadium: 'Lincoln Financial Field, Filadelfia', homeScore: 7, awayScore: 1, status: 'played' },
-  { id: 26, group: 'E', home: 'Costa de Marfil', away: 'Ecuador', date: '2026-06-14', time: '19:00', stadium: 'Levi\'s Stadium, San Francisco', homeScore: null, awayScore: null, status: 'upcoming' },
-  { id: 27, group: 'E', home: 'Alemania', away: 'Ecuador', date: '2026-06-19', time: '13:00', stadium: 'Levi\'s Stadium, San Francisco', homeScore: null, awayScore: null, status: 'upcoming' },
-  { id: 28, group: 'E', home: 'Curazao', away: 'Costa de Marfil', date: '2026-06-19', time: '16:00', stadium: 'Lincoln Financial Field, Filadelfia', homeScore: null, awayScore: null, status: 'upcoming' },
-  { id: 29, group: 'E', home: 'Ecuador', away: 'Curazao', date: '2026-06-25', time: '13:00', stadium: 'Lincoln Financial Field, Filadelfia', homeScore: null, awayScore: null, status: 'upcoming' },
-  { id: 30, group: 'E', home: 'Costa de Marfil', away: 'Alemania', date: '2026-06-25', time: '13:00', stadium: 'Levi\'s Stadium, San Francisco', homeScore: null, awayScore: null, status: 'upcoming' },
+  { id: 25, group: 'E', home: 'Alemania', away: 'Curazao', date: '2026-06-14', time: '16:00', stadium: 'Lincoln Financial Field, Filadelfia', homeScore: 7, awayScore: 1, status: 'played' },
+  { id: 26, group: 'E', home: 'Costa de Marfil', away: 'Ecuador', date: '2026-06-14', time: '22:00', stadium: 'Levi\'s Stadium, San Francisco', homeScore: null, awayScore: null, status: 'upcoming' },
+  { id: 27, group: 'E', home: 'Alemania', away: 'Ecuador', date: '2026-06-19', time: '16:00', stadium: 'Levi\'s Stadium, San Francisco', homeScore: null, awayScore: null, status: 'upcoming' },
+  { id: 28, group: 'E', home: 'Curazao', away: 'Costa de Marfil', date: '2026-06-19', time: '19:00', stadium: 'Lincoln Financial Field, Filadelfia', homeScore: null, awayScore: null, status: 'upcoming' },
+  { id: 29, group: 'E', home: 'Ecuador', away: 'Curazao', date: '2026-06-25', time: '16:00', stadium: 'Lincoln Financial Field, Filadelfia', homeScore: null, awayScore: null, status: 'upcoming' },
+  { id: 30, group: 'E', home: 'Costa de Marfil', away: 'Alemania', date: '2026-06-25', time: '16:00', stadium: 'Levi\'s Stadium, San Francisco', homeScore: null, awayScore: null, status: 'upcoming' },
   // GRUPO F
-  { id: 31, group: 'F', home: 'Países Bajos', away: 'Japón', date: '2026-06-14', time: '16:00', stadium: 'Estadio BBVA, Monterrey', homeScore: 2, awayScore: 2, status: 'played' },
-  { id: 32, group: 'F', home: 'Suecia', away: 'Túnez', date: '2026-06-14', time: '21:00', stadium: 'Estadio BBVA, Monterrey', homeScore: null, awayScore: null, status: 'upcoming' },
-  { id: 33, group: 'F', home: 'Países Bajos', away: 'Túnez', date: '2026-06-20', time: '16:00', stadium: 'Estadio Akron, Guadalajara', homeScore: null, awayScore: null, status: 'upcoming' },
-  { id: 34, group: 'F', home: 'Japón', away: 'Suecia', date: '2026-06-20', time: '19:00', stadium: 'Estadio BBVA, Monterrey', homeScore: null, awayScore: null, status: 'upcoming' },
-  { id: 35, group: 'F', home: 'Túnez', away: 'Japón', date: '2026-06-26', time: '16:00', stadium: 'Estadio BBVA, Monterrey', homeScore: null, awayScore: null, status: 'upcoming' },
-  { id: 36, group: 'F', home: 'Suecia', away: 'Países Bajos', date: '2026-06-26', time: '16:00', stadium: 'Estadio Akron, Guadalajara', homeScore: null, awayScore: null, status: 'upcoming' },
+  { id: 31, group: 'F', home: 'Países Bajos', away: 'Japón', date: '2026-06-14', time: '19:00', stadium: 'Estadio BBVA, Monterrey', homeScore: 2, awayScore: 2, status: 'played' },
+  { id: 32, group: 'F', home: 'Suecia', away: 'Túnez', date: '2026-06-14', time: '23:00', stadium: 'Estadio BBVA, Monterrey', homeScore: null, awayScore: null, status: 'upcoming' },
+  { id: 33, group: 'F', home: 'Países Bajos', away: 'Túnez', date: '2026-06-20', time: '19:00', stadium: 'Estadio Akron, Guadalajara', homeScore: null, awayScore: null, status: 'upcoming' },
+  { id: 34, group: 'F', home: 'Japón', away: 'Suecia', date: '2026-06-20', time: '22:00', stadium: 'Estadio BBVA, Monterrey', homeScore: null, awayScore: null, status: 'upcoming' },
+  { id: 35, group: 'F', home: 'Túnez', away: 'Japón', date: '2026-06-26', time: '19:00', stadium: 'Estadio BBVA, Monterrey', homeScore: null, awayScore: null, status: 'upcoming' },
+  { id: 36, group: 'F', home: 'Suecia', away: 'Países Bajos', date: '2026-06-26', time: '19:00', stadium: 'Estadio Akron, Guadalajara', homeScore: null, awayScore: null, status: 'upcoming' },
   // GRUPO G
-  { id: 37, group: 'G', home: 'Bélgica', away: 'Egipto', date: '2026-06-15', time: '13:00', stadium: 'Arrowhead Stadium, Kansas City', homeScore: null, awayScore: null, status: 'upcoming' },
-  { id: 38, group: 'G', home: 'Irán', away: 'Nueva Zelanda', date: '2026-06-15', time: '16:00', stadium: 'NRG Stadium, Houston', homeScore: null, awayScore: null, status: 'upcoming' },
-  { id: 39, group: 'G', home: 'Bélgica', away: 'Nueva Zelanda', date: '2026-06-20', time: '13:00', stadium: 'NRG Stadium, Houston', homeScore: null, awayScore: null, status: 'upcoming' },
-  { id: 40, group: 'G', home: 'Egipto', away: 'Irán', date: '2026-06-20', time: '16:00', stadium: 'Arrowhead Stadium, Kansas City', homeScore: null, awayScore: null, status: 'upcoming' },
-  { id: 41, group: 'G', home: 'Nueva Zelanda', away: 'Egipto', date: '2026-06-26', time: '13:00', stadium: 'Arrowhead Stadium, Kansas City', homeScore: null, awayScore: null, status: 'upcoming' },
-  { id: 42, group: 'G', home: 'Irán', away: 'Bélgica', date: '2026-06-26', time: '13:00', stadium: 'NRG Stadium, Houston', homeScore: null, awayScore: null, status: 'upcoming' },
+  { id: 37, group: 'G', home: 'Bélgica', away: 'Egipto', date: '2026-06-15', time: '16:00', stadium: 'Arrowhead Stadium, Kansas City', homeScore: null, awayScore: null, status: 'upcoming' },
+  { id: 38, group: 'G', home: 'Irán', away: 'Nueva Zelanda', date: '2026-06-15', time: '19:00', stadium: 'NRG Stadium, Houston', homeScore: null, awayScore: null, status: 'upcoming' },
+  { id: 39, group: 'G', home: 'Bélgica', away: 'Nueva Zelanda', date: '2026-06-20', time: '16:00', stadium: 'NRG Stadium, Houston', homeScore: null, awayScore: null, status: 'upcoming' },
+  { id: 40, group: 'G', home: 'Egipto', away: 'Irán', date: '2026-06-20', time: '19:00', stadium: 'Arrowhead Stadium, Kansas City', homeScore: null, awayScore: null, status: 'upcoming' },
+  { id: 41, group: 'G', home: 'Nueva Zelanda', away: 'Egipto', date: '2026-06-26', time: '16:00', stadium: 'Arrowhead Stadium, Kansas City', homeScore: null, awayScore: null, status: 'upcoming' },
+  { id: 42, group: 'G', home: 'Irán', away: 'Bélgica', date: '2026-06-26', time: '16:00', stadium: 'NRG Stadium, Houston', homeScore: null, awayScore: null, status: 'upcoming' },
   // GRUPO H
-  { id: 43, group: 'H', home: 'España', away: 'Cabo Verde', date: '2026-06-15', time: '19:00', stadium: 'Mercedes-Benz Stadium, Atlanta', homeScore: null, awayScore: null, status: 'upcoming' },
-  { id: 44, group: 'H', home: 'Arabia Saudita', away: 'Uruguay', date: '2026-06-15', time: '21:00', stadium: 'AT&T Stadium, Dallas', homeScore: null, awayScore: null, status: 'upcoming' },
-  { id: 45, group: 'H', home: 'España', away: 'Uruguay', date: '2026-06-21', time: '19:00', stadium: 'AT&T Stadium, Dallas', homeScore: null, awayScore: null, status: 'upcoming' },
-  { id: 46, group: 'H', home: 'Cabo Verde', away: 'Arabia Saudita', date: '2026-06-21', time: '21:00', stadium: 'Mercedes-Benz Stadium, Atlanta', homeScore: null, awayScore: null, status: 'upcoming' },
-  { id: 47, group: 'H', home: 'Uruguay', away: 'Cabo Verde', date: '2026-06-27', time: '19:00', stadium: 'Mercedes-Benz Stadium, Atlanta', homeScore: null, awayScore: null, status: 'upcoming' },
-  { id: 48, group: 'H', home: 'Arabia Saudita', away: 'España', date: '2026-06-27', time: '19:00', stadium: 'AT&T Stadium, Dallas', homeScore: null, awayScore: null, status: 'upcoming' },
+  { id: 43, group: 'H', home: 'España', away: 'Cabo Verde', date: '2026-06-15', time: '22:00', stadium: 'Mercedes-Benz Stadium, Atlanta', homeScore: null, awayScore: null, status: 'upcoming' },
+  { id: 44, group: 'H', home: 'Arabia Saudita', away: 'Uruguay', date: '2026-06-15', time: '23:00', stadium: 'AT&T Stadium, Dallas', homeScore: null, awayScore: null, status: 'upcoming' },
+  { id: 45, group: 'H', home: 'España', away: 'Uruguay', date: '2026-06-21', time: '22:00', stadium: 'AT&T Stadium, Dallas', homeScore: null, awayScore: null, status: 'upcoming' },
+  { id: 46, group: 'H', home: 'Cabo Verde', away: 'Arabia Saudita', date: '2026-06-21', time: '23:00', stadium: 'Mercedes-Benz Stadium, Atlanta', homeScore: null, awayScore: null, status: 'upcoming' },
+  { id: 47, group: 'H', home: 'Uruguay', away: 'Cabo Verde', date: '2026-06-27', time: '22:00', stadium: 'Mercedes-Benz Stadium, Atlanta', homeScore: null, awayScore: null, status: 'upcoming' },
+  { id: 48, group: 'H', home: 'Arabia Saudita', away: 'España', date: '2026-06-27', time: '22:00', stadium: 'AT&T Stadium, Dallas', homeScore: null, awayScore: null, status: 'upcoming' },
   // GRUPO I
-  { id: 49, group: 'I', home: 'Francia', away: 'Senegal', date: '2026-06-16', time: '13:00', stadium: 'Gillette Stadium, Boston', homeScore: null, awayScore: null, status: 'upcoming' },
-  { id: 50, group: 'I', home: 'Irak', away: 'Noruega', date: '2026-06-16', time: '16:00', stadium: 'Lumen Field, Seattle', homeScore: null, awayScore: null, status: 'upcoming' },
-  { id: 51, group: 'I', home: 'Francia', away: 'Noruega', date: '2026-06-21', time: '13:00', stadium: 'Lumen Field, Seattle', homeScore: null, awayScore: null, status: 'upcoming' },
-  { id: 52, group: 'I', home: 'Senegal', away: 'Irak', date: '2026-06-21', time: '16:00', stadium: 'Gillette Stadium, Boston', homeScore: null, awayScore: null, status: 'upcoming' },
-  { id: 53, group: 'I', home: 'Noruega', away: 'Senegal', date: '2026-06-27', time: '13:00', stadium: 'Gillette Stadium, Boston', homeScore: null, awayScore: null, status: 'upcoming' },
-  { id: 54, group: 'I', home: 'Irak', away: 'Francia', date: '2026-06-27', time: '13:00', stadium: 'Lumen Field, Seattle', homeScore: null, awayScore: null, status: 'upcoming' },
+  { id: 49, group: 'I', home: 'Francia', away: 'Senegal', date: '2026-06-16', time: '16:00', stadium: 'Gillette Stadium, Boston', homeScore: null, awayScore: null, status: 'upcoming' },
+  { id: 50, group: 'I', home: 'Irak', away: 'Noruega', date: '2026-06-16', time: '19:00', stadium: 'Lumen Field, Seattle', homeScore: null, awayScore: null, status: 'upcoming' },
+  { id: 51, group: 'I', home: 'Francia', away: 'Noruega', date: '2026-06-21', time: '16:00', stadium: 'Lumen Field, Seattle', homeScore: null, awayScore: null, status: 'upcoming' },
+  { id: 52, group: 'I', home: 'Senegal', away: 'Irak', date: '2026-06-21', time: '19:00', stadium: 'Gillette Stadium, Boston', homeScore: null, awayScore: null, status: 'upcoming' },
+  { id: 53, group: 'I', home: 'Noruega', away: 'Senegal', date: '2026-06-27', time: '16:00', stadium: 'Gillette Stadium, Boston', homeScore: null, awayScore: null, status: 'upcoming' },
+  { id: 54, group: 'I', home: 'Irak', away: 'Francia', date: '2026-06-27', time: '16:00', stadium: 'Lumen Field, Seattle', homeScore: null, awayScore: null, status: 'upcoming' },
   // GRUPO J
-  { id: 55, group: 'J', home: 'Argentina', away: 'Argelia', date: '2026-06-16', time: '19:00', stadium: 'Hard Rock Stadium, Miami', homeScore: null, awayScore: null, status: 'upcoming' },
-  { id: 56, group: 'J', home: 'Austria', away: 'Jordania', date: '2026-06-16', time: '21:00', stadium: 'Mercedes-Benz Stadium, Atlanta', homeScore: null, awayScore: null, status: 'upcoming' },
-  { id: 57, group: 'J', home: 'Argentina', away: 'Jordania', date: '2026-06-22', time: '19:00', stadium: 'Mercedes-Benz Stadium, Atlanta', homeScore: null, awayScore: null, status: 'upcoming' },
-  { id: 58, group: 'J', home: 'Argelia', away: 'Austria', date: '2026-06-22', time: '21:00', stadium: 'Hard Rock Stadium, Miami', homeScore: null, awayScore: null, status: 'upcoming' },
-  { id: 59, group: 'J', home: 'Jordania', away: 'Argelia', date: '2026-06-27', time: '21:00', stadium: 'Hard Rock Stadium, Miami', homeScore: null, awayScore: null, status: 'upcoming' },
-  { id: 60, group: 'J', home: 'Austria', away: 'Argentina', date: '2026-06-27', time: '21:00', stadium: 'Mercedes-Benz Stadium, Atlanta', homeScore: null, awayScore: null, status: 'upcoming' },
+  { id: 55, group: 'J', home: 'Argentina', away: 'Argelia', date: '2026-06-16', time: '22:00', stadium: 'Hard Rock Stadium, Miami', homeScore: null, awayScore: null, status: 'upcoming' },
+  { id: 56, group: 'J', home: 'Austria', away: 'Jordania', date: '2026-06-16', time: '23:00', stadium: 'Mercedes-Benz Stadium, Atlanta', homeScore: null, awayScore: null, status: 'upcoming' },
+  { id: 57, group: 'J', home: 'Argentina', away: 'Jordania', date: '2026-06-22', time: '22:00', stadium: 'Mercedes-Benz Stadium, Atlanta', homeScore: null, awayScore: null, status: 'upcoming' },
+  { id: 58, group: 'J', home: 'Argelia', away: 'Austria', date: '2026-06-22', time: '23:00', stadium: 'Hard Rock Stadium, Miami', homeScore: null, awayScore: null, status: 'upcoming' },
+  { id: 59, group: 'J', home: 'Jordania', away: 'Argelia', date: '2026-06-27', time: '23:00', stadium: 'Hard Rock Stadium, Miami', homeScore: null, awayScore: null, status: 'upcoming' },
+  { id: 60, group: 'J', home: 'Austria', away: 'Argentina', date: '2026-06-27', time: '23:00', stadium: 'Mercedes-Benz Stadium, Atlanta', homeScore: null, awayScore: null, status: 'upcoming' },
   // GRUPO K
-  { id: 61, group: 'K', home: 'Portugal', away: 'RD Congo', date: '2026-06-17', time: '13:00', stadium: 'SoFi Stadium, Los Ángeles', homeScore: null, awayScore: null, status: 'upcoming' },
-  { id: 62, group: 'K', home: 'Uzbekistán', away: 'Colombia', date: '2026-06-17', time: '16:00', stadium: 'NRG Stadium, Houston', homeScore: null, awayScore: null, status: 'upcoming' },
-  { id: 63, group: 'K', home: 'Portugal', away: 'Colombia', date: '2026-06-22', time: '13:00', stadium: 'NRG Stadium, Houston', homeScore: null, awayScore: null, status: 'upcoming' },
-  { id: 64, group: 'K', home: 'RD Congo', away: 'Uzbekistán', date: '2026-06-22', time: '16:00', stadium: 'SoFi Stadium, Los Ángeles', homeScore: null, awayScore: null, status: 'upcoming' },
-  { id: 65, group: 'K', home: 'Colombia', away: 'RD Congo', date: '2026-06-27', time: '16:00', stadium: 'SoFi Stadium, Los Ángeles', homeScore: null, awayScore: null, status: 'upcoming' },
-  { id: 66, group: 'K', home: 'Uzbekistán', away: 'Portugal', date: '2026-06-27', time: '16:00', stadium: 'NRG Stadium, Houston', homeScore: null, awayScore: null, status: 'upcoming' },
+  { id: 61, group: 'K', home: 'Portugal', away: 'RD Congo', date: '2026-06-17', time: '16:00', stadium: 'SoFi Stadium, Los Ángeles', homeScore: null, awayScore: null, status: 'upcoming' },
+  { id: 62, group: 'K', home: 'Uzbekistán', away: 'Colombia', date: '2026-06-17', time: '19:00', stadium: 'NRG Stadium, Houston', homeScore: null, awayScore: null, status: 'upcoming' },
+  { id: 63, group: 'K', home: 'Portugal', away: 'Colombia', date: '2026-06-22', time: '16:00', stadium: 'NRG Stadium, Houston', homeScore: null, awayScore: null, status: 'upcoming' },
+  { id: 64, group: 'K', home: 'RD Congo', away: 'Uzbekistán', date: '2026-06-22', time: '19:00', stadium: 'SoFi Stadium, Los Ángeles', homeScore: null, awayScore: null, status: 'upcoming' },
+  { id: 65, group: 'K', home: 'Colombia', away: 'RD Congo', date: '2026-06-27', time: '19:00', stadium: 'SoFi Stadium, Los Ángeles', homeScore: null, awayScore: null, status: 'upcoming' },
+  { id: 66, group: 'K', home: 'Uzbekistán', away: 'Portugal', date: '2026-06-27', time: '19:00', stadium: 'NRG Stadium, Houston', homeScore: null, awayScore: null, status: 'upcoming' },
   // GRUPO L
-  { id: 67, group: 'L', home: 'Inglaterra', away: 'Croacia', date: '2026-06-17', time: '19:00', stadium: 'Arrowhead Stadium, Kansas City', homeScore: null, awayScore: null, status: 'upcoming' },
-  { id: 68, group: 'L', home: 'Ghana', away: 'Panamá', date: '2026-06-17', time: '21:00', stadium: 'Levi\'s Stadium, San Francisco', homeScore: null, awayScore: null, status: 'upcoming' },
-  { id: 69, group: 'L', home: 'Inglaterra', away: 'Panamá', date: '2026-06-23', time: '13:00', stadium: 'Levi\'s Stadium, San Francisco', homeScore: null, awayScore: null, status: 'upcoming' },
-  { id: 70, group: 'L', home: 'Croacia', away: 'Ghana', date: '2026-06-23', time: '16:00', stadium: 'Arrowhead Stadium, Kansas City', homeScore: null, awayScore: null, status: 'upcoming' },
-  { id: 71, group: 'L', home: 'Panamá', away: 'Croacia', date: '2026-06-27', time: '16:00', stadium: 'Arrowhead Stadium, Kansas City', homeScore: null, awayScore: null, status: 'upcoming' },
-  { id: 72, group: 'L', home: 'Ghana', away: 'Inglaterra', date: '2026-06-27', time: '16:00', stadium: 'Levi\'s Stadium, San Francisco', homeScore: null, awayScore: null, status: 'upcoming' },
+  { id: 67, group: 'L', home: 'Inglaterra', away: 'Croacia', date: '2026-06-17', time: '22:00', stadium: 'Arrowhead Stadium, Kansas City', homeScore: null, awayScore: null, status: 'upcoming' },
+  { id: 68, group: 'L', home: 'Ghana', away: 'Panamá', date: '2026-06-17', time: '23:00', stadium: 'Levi\'s Stadium, San Francisco', homeScore: null, awayScore: null, status: 'upcoming' },
+  { id: 69, group: 'L', home: 'Inglaterra', away: 'Panamá', date: '2026-06-23', time: '16:00', stadium: 'Levi\'s Stadium, San Francisco', homeScore: null, awayScore: null, status: 'upcoming' },
+  { id: 70, group: 'L', home: 'Croacia', away: 'Ghana', date: '2026-06-23', time: '19:00', stadium: 'Arrowhead Stadium, Kansas City', homeScore: null, awayScore: null, status: 'upcoming' },
+  { id: 71, group: 'L', home: 'Panamá', away: 'Croacia', date: '2026-06-27', time: '19:00', stadium: 'Arrowhead Stadium, Kansas City', homeScore: null, awayScore: null, status: 'upcoming' },
+  { id: 72, group: 'L', home: 'Ghana', away: 'Inglaterra', date: '2026-06-27', time: '19:00', stadium: 'Levi\'s Stadium, San Francisco', homeScore: null, awayScore: null, status: 'upcoming' },
 ];
 
 // ---- APP STATE ----
@@ -288,6 +288,20 @@ function renderPartidos(container) {
   let filteredLive = currentFilter !== 'todos' ? liveMatches.filter(m => m.group === currentFilter) : liveMatches;
   let filteredPlayed = currentFilter !== 'todos' ? playedMatches.filter(m => m.group === currentFilter) : playedMatches;
   let filteredUpcoming = currentFilter !== 'todos' ? upcomingMatches.filter(m => m.group === currentFilter) : upcomingMatches;
+
+  // Ordenar próximos partidos por proximidad de horario
+  filteredUpcoming.sort((a, b) => {
+    const dateA = new Date(a.date + 'T' + (a.time || '00:00') + ':00');
+    const dateB = new Date(b.date + 'T' + (b.time || '00:00') + ':00');
+    return dateA - dateB;
+  });
+  
+  // Ordenar partidos jugados desde el más reciente al más antiguo
+  filteredPlayed.sort((a, b) => {
+    const dateA = new Date(a.date + 'T' + (a.time || '00:00') + ':00');
+    const dateB = new Date(b.date + 'T' + (b.time || '00:00') + ':00');
+    return dateB - dateA;
+  });
 
   container.innerHTML = `
     <div class="section-header"><h2 class="section-title">⚽ Partidos del Mundial</h2></div>

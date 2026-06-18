@@ -428,6 +428,14 @@ class LiveScoreService {
         text.textContent = 'Offline';
         break;
     }
+    
+    // Ocultar indicador si no hay partidos en vivo (y no está en error)
+    const hasLiveMatch = typeof MATCHES !== 'undefined' && MATCHES.some(m => m.status === 'live');
+    if (hasLiveMatch) {
+      indicator.style.display = 'flex';
+    } else {
+      indicator.style.display = 'none';
+    }
   }
 }
 
